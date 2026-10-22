@@ -62,3 +62,38 @@ def test_empty_registry_and_bad_taus():
         CompositeVerifier(0.8, 0.3).evaluate("x")
     with pytest.raises(ValueError):
         CompositeVerifier(0.3, 0.8)
+
+
+# -- v1.0.2 higiene: fronteras de pesos (ANCHOR_CHANGES #10) -----------------
+
+def test_register_rejects_negative_weight():
+    cv = CompositeVerifier()
+    with pytest.raises(ValueError):
+        cv.register(Fake("x", 0.9), -0.1)
+
+
+def test_register_rejects_nonfinite_weight():
+    cv = CompositeVerifier()
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValueError):
+            cv.register(Fake("x", 0.9), bad)
+
+
+def test_zero_weight_vote_allowed_and_inert():
+    # S-08: policy votes hard-block with weight 0.0. Register must ACCEPT
+    # weight 0 and the weighted arithmetic of the others stays intact.
+    cv = CompositeVerifier(tau_approve=0.80, tau_doubt=0.35)
+    cv.register(Fake("programmatic", 0.9), 0.45)
+    cv.register(Fake("policy", 1.0), 0.0)
+    d = cv.evaluate("x")
+    assert d.weighted_score == pytest.approx(0.9)  # 0.45*0.9 / 0.45
+    cv._plugins[1]._hb = True
+    assert cv.evaluate("x").decision == BLOCK
+
+
+def test_evaluate_rejects_degenerate_registry():
+    cv = CompositeVerifier()
+    cv.register(Fake("a", 0.9), 0.0)
+    cv.register(Fake("b", 0.9), 0.0)
+    with pytest.raises(ValueError):
+        cv.evaluate("x")

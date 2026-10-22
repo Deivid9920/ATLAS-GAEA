@@ -34,10 +34,12 @@ def test_probe_reports_unavailable_honestly():
 
 
 def test_probe_recalibration_job_logs(tmp_path):
-    probe = ProbeVerifier(repo_root=ROOT)
+    # Enmienda pre-registrada (entregas/PENDIENTES_POST_RELEASE.md, fila #13 de
+    # ANCHOR_CHANGES.md): tmp_path ES el repo_root — la suite no toca el log real.
+    probe = ProbeVerifier(repo_root=tmp_path)
     rec = probe.recalibrate()
     assert rec["status"] in ("unavailable", "queued")
-    log = ROOT / "logs" / "probe_recalibration.jsonl"
+    log = tmp_path / "logs" / "probe_recalibration.jsonl"
     assert log.is_file()
     lines = log.read_text().strip().splitlines()
     assert len(lines) >= 1

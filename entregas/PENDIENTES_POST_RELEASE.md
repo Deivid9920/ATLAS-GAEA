@@ -13,11 +13,15 @@ SOLO después del tag v1.0:
 
 | # | File | Change | Justification | Authorization |
 |---|------|--------|---------------|---------------|
-| 10 | `tests/test_probe_and_cache.py` | `test_probe_recalibration_job_logs`: usar `tmp_path` como `repo_root` del `ProbeVerifier` (hoy recibe `tmp_path` y lo ignora; escribe al log REAL `logs/probe_recalibration.jsonl`) | Higiene de repo público: cada `make test` anexa un registro al log real y deja `git status` sucio tras la suite. El estado runtime no es evidencia versionable; el log real se alimenta por `recalibrate()` en operación, no por la suite de tests. La operación append-only de `recalibrate()` no cambia. | PENDIENTE de autorización del operador. Aplicar post-v1.0 con registro en ANCHOR_CHANGES.md y re-corrida completa (182/182 + audit-verify + recomputo de huellas). |
+| 10 | `tests/test_probe_and_cache.py` | `test_probe_recalibration_job_logs`: usar `tmp_path` como `repo_root` del `ProbeVerifier` (hoy recibe `tmp_path` y lo ignora; escribe al log REAL `logs/probe_recalibration.jsonl`) | Higiene de repo público: cada `make test` anexa un registro al log real y deja `git status` sucio tras la suite. El estado runtime no es evidencia versionable; el log real se alimenta por `recalibrate()` en operación, no por la suite de tests. La operación append-only de `recalibrate()` no cambia. | AUTORIZADO ("Vamos a proceder con el lote 1", chat 2026-10-22) y APLICADO en v1.0.2 (2026-10-23) como fila #13 de `atlas/docs/ANCHOR_CHANGES.md` (renumerada: las filas 10-12 de ese lote ya estaban ocupadas). Re-corrida completa: 187/187 + 109/109, audit-verify ok, huellas S-01 recomputadas intactas (heph 23981267…, nano_fp32 499e8c53…, holdout 127ef76b…). |
 
 Efecto esperado tras aplicar: `make test` ya no muta `logs/probe_recalibration.jsonl`;
 `git status` queda limpio después de la suite; el comportamiento de `recalibrate()`
 en operación (append-only) permanece intacto.
+
+**VERIFICADO (2026-10-23, v1.0.2):** suite ATLAS completa ejecutada sobre clone
+prístino — `atlas/logs/probe_recalibration.jsonl` permanece byte-idéntico (28 líneas)
+y `git status` tras la suite solo muestra los archivos del lote. Efecto confirmado.
 
 Contexto completo de la causa raíz: sección "Salvedad de la verificación externa
 independiente" en `ATLAS_fase7_cierre_anexo.md` (este directorio).

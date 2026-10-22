@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass
 from typing import MutableMapping
 
@@ -48,9 +49,20 @@ class CompositeVerifier:
         self._weights: dict[str, float] = {}
 
     def register(self, plugin, weight: float) -> None:
-        """Register a verifier plugin with its vote weight."""
+        """Register a verifier plugin with its vote weight.
+
+        v1.0.2 (ANCHOR_CHANGES #10): the weight must be finite and
+        >= 0. Weight 0.0 is legitimate — the S-08 policy plugin votes
+        hard-block with weight 0.0 — and stays inert in the weighted
+        average; a negative or non-finite weight would silently
+        distort the vote and is rejected here (fail-loud).
+        """
+        w = float(weight)
+        if not math.isfinite(w) or w < 0.0:
+            raise ValueError(
+                f"plugin weight must be finite and >= 0 (got {weight!r})")
         self._plugins.append(plugin)
-        self._weights[plugin.name] = float(weight)
+        self._weights[plugin.name] = w
 
     def signature(self) -> str:
         """Hash of the registry (plugins + weights + taus); any change
@@ -79,6 +91,13 @@ class CompositeVerifier:
                       f"{v.evidence or 'policy'}" for v in blocks))
 
         total_w = sum(self._weights[v.verifier] for v in votes)
+        if total_w <= 0.0:
+            # v1.0.2 (ANCHOR_CHANGES #10): an all-zero-weight registry
+            # cannot produce a weighted vote. Was an opaque
+            # ZeroDivisionError; now a named, documented failure.
+            raise ValueError(
+                "degenerate registry: total weight must be > 0 "
+                "(all-zero weights cannot produce a weighted vote)")
         weighted = sum(self._weights[v.verifier] * v.score
                        for v in votes) / total_w
 

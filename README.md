@@ -8,8 +8,8 @@ Regla de este repositorio: cada número que aparece en cualquier README está re
 
 | Directorio | Qué es | Estado al cierre |
 |---|---|---|
-| `atlas/` | Agente especialista CPU-only: verificador compuesto (programático + simbólico + probe), presupuesto anytime-compute, cadena de auditoría tamper-evident por acción, protocolo de linaje que solo crece cuando el verificador lo justifica | FASES 0-7 completas · commit `df4eb6f` · tag `v1.0` · suite 182/182 · `audit-verify` ok |
-| `gaea_v/` | GAEA-VERIFICADOR: capa de medición certificable (preregistro antes de datos, corrección de Holm, bootstrap pareado, CPU-segundo con `getrusage`, zoo de ataques anti-hacking congelado) | FASES -1 a 7 con gates verdes · commit `a52277d` · suite 108/108 · Anexo E 8/8 PASS |
+| `atlas/` | Agente especialista CPU-only: verificador compuesto (programático + simbólico + probe), presupuesto anytime-compute, cadena de auditoría tamper-evident por acción, protocolo de linaje que solo crece cuando el verificador lo justifica | FASES 0-7 completas · commit `df4eb6f` · tag `v1.0` · suite 187/187 (182 ancla + 5 higiene v1.0.2) · `audit-verify` ok |
+| `gaea_v/` | GAEA-VERIFICADOR: capa de medición certificable (preregistro antes de datos, corrección de Holm, bootstrap pareado, CPU-segundo con `getrusage`, zoo de ataques anti-hacking congelado) | FASES -1 a 7 con gates verdes · commit `a52277d` · suite 109/109 (108 ancla + 1 higiene v1.0.2) · Anexo E 8/8 PASS |
 | `hephaestus/` | Artefactos de inferencia SIMD C++ congelados por huella sha256 (binario + pesos champion + tokenizer). El código fuente de HEPHAESTUS vive en su propio repositorio | binario `23981267…` · pesos champion `499e8c53…` |
 | `prometheus-ns/` | Repositorio base del linaje; aporta `data_clean/holdout` congelado (el archivo se llama por su propio sha256) | holdout `127ef76be336…` verificado |
 | `entregas/` | Evidencia de entrega: zips congelados con sus SHA256SUMS, anexo de cierre de FASE 7, informe verificable | zip ATLAS `f17b98dc…` byte-exacto |
@@ -68,11 +68,11 @@ git clone <este-repo> atlas-gaea && cd atlas-gaea
 # ATLAS (los hermanos ../hephaestus y ../gaea_v ya están en su sitio por diseño)
 cd atlas
 make setup && make bridge-check && make demo   # puente 5/5 + demo
-make test                                       # 182/182
+make test                                       # 187/187
 
 # GAEA-VERIFICADOR
 cd ../gaea_v
-make setup && make test                         # 108/108
+make setup && make test                         # 109/109
 make audit-verify                               # cadena íntegra, first_bad_seq null
 ```
 
@@ -94,10 +94,14 @@ Nota documentada: `make test` de ATLAS añade un registro a `atlas/logs/probe_re
 | `atlas_int8` | not_measurable: el generador de este build es fp32-only (BridgeError registrada) | `gaea_v/artifacts/fase6_h4_int8.json` |
 | Probe CASSANDRA en vivo | calibrado y desactivado por decisión encadenada; scoring en vivo requiere el runtime CASSANDRA | `atlas/logs/probe_recalibration.jsonl` |
 | Enmienda de higiene de test (#10) | deliberadamente NO aplicada antes del tag v1.0 (anclas congeladas en el release) | `entregas/PENDIENTES_POST_RELEASE.md` |
+| CLIs `make rft` / `make lineage` de ATLAS | esqueletos fail-loud (guard con `exit 2` desde v1.0.2): FASE 5-6 se midieron vía harness gaea_v; implementar el ciclo CLI en ATLAS es trabajo futuro | `atlas/scripts/rft_round.py`, `atlas/scripts/lineage_round.py`, `atlas/atlas_ns/learning/rft.py` (spec por docstring) |
+| Aislamiento real del sandbox + piping al evento de auditoría | hoy: `subprocess+rlimits` (POSIX-only), red NO bloqueada a nivel OS (`no_network_requested` = petición, no propiedad verificada); Lote 2: contenedor/WSL2 fail-closed y registro del perfil en la cadena | `atlas/atlas_ns/verify/plugins/programmatic.py`, ANCHOR_CHANGES #11 |
 
 ## Entregas y verificación
 
 `entregas/` contiene los zips congelados con sus sumas, el anexo de cierre de FASE 7 (con la salvedad de auditoría registrada al final) y el informe de entrega verificable de 12 páginas.
+
+**Compatibilidad de commits:** las referencias `ecb494b` / `4427672` / `df4eb6f` que aparecen en los artefactos son la misma línea histórica de ATLAS registrada al tiempo de cada medición; la tabla de reconstrucción exacta vive en `gaea_v/docs/COMPATIBILIDAD_COMMITS.md`.
 
 ```bash
 cd entregas

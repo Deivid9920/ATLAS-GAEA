@@ -67,3 +67,25 @@ se conservan tal cual: son evidencia congelada y no se re-validan
 contra el esquema ampliado. config.yaml no cambia (ningún umbral se
 mueve); la enmienda queda anclada por tests del validador.
 Autorización del operador: instrucción "Continua con la FASE 6".
+
+## 2026-10-22 — Enriquecimiento de esquema: `paired_bootstrap` añade `p_resolution` (higiene v1.0.2)
+
+Naturaleza: enmienda de esquema (no de umbral, no de semántica, no de
+semilla). El dict devuelto por `paired_bootstrap` añade el campo
+`p_resolution = 1/resamples`: el suelo de resolución de Monte Carlo
+del `p_two_sided` reportado. Un p imprimido como 0.0 significa "masa
+de cola por debajo de la resolución del experimento", nunca una
+probabilidad literal cero (hallazgo verificado de auditoría externa
+independiente: con resamples finitos, `extreme/resamples` no puede
+distinguir p<1e-4 de p=0). Los valores previos (delta, ci_lo, ci_hi,
+p_two_sided) permanecen BIT-IDÉNTICOS: el test de ancla congelado
+(`test_frozen_values_and_paring`) se actualiza SOLO para añadir el
+campo nuevo al dict esperado, con sus valores intactos
+(0.4 / 0.1 / 0.7 / 0.021), y se añade
+`test_p_zero_is_a_floor_not_a_literal_zero`. Los artefactos de
+inferencia ya publicados (final_inference.json, manifests de runs)
+NO se regeneran: son evidencia congelada. El campo aplica a corridas
+futuras, que lo heredan sin cambio de preregistro (no altera ningún
+umbral, regla de decisión ni familia de Holm).
+Autorización del operador: instrucción "Vamos a proceder con el
+lote 1" (chat, 2026-10-22).

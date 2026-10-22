@@ -68,6 +68,16 @@ def test_sandbox_timeout_is_bounded(verifier):
     assert res["passed"] is False and res["exit_code"] == -9
 
 
+def test_sandbox_reports_isolation_profile(verifier):
+    # v1.0.2 (ANCHOR_CHANGES #11): the sandbox reports what was actually
+    # enforced. no_network_requested mirrors the config REQUEST — it is
+    # NOT a verified property; the honest name replaces the old one.
+    res = verifier.run_in_sandbox("x = 1", "assert x == 1")
+    assert res["isolation_profile"] == "subprocess+rlimits"
+    assert res["no_network_requested"] is True  # config default
+    assert "no_network_enforced" not in res
+
+
 def test_no_evidence_is_zero_not_fake(verifier):
     v = verifier.verify("anything", {})
     assert v.score == 0.0 and "no programmatic evidence" in v.evidence

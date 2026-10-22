@@ -38,8 +38,12 @@ def paired_bootstrap(paired_scores_a, paired_scores_b, resamples: int,
                      seed: int) -> dict:
     """Percentile bootstrap over task-paired differences (a - b).
 
-    Returns {delta, ci_lo, ci_hi, p_two_sided}. Differences are paired
-    by task position; both lists must have equal length >= 1.
+    Returns {delta, ci_lo, ci_hi, p_two_sided, p_resolution}.
+    Differences are paired by task position; both lists must have
+    equal length >= 1. p_resolution = 1/resamples is the Monte Carlo
+    floor of p_two_sided: a reported 0.0 means the tail mass lies
+    below this resolution, never a literal probability of zero
+    (schema enrichment, gaea_v/docs/ANCHOR_CHANGES.md 2026-10-22).
     """
     if len(paired_scores_a) != len(paired_scores_b):
         raise ValueError("paired lists must have equal length")
@@ -66,7 +70,8 @@ def paired_bootstrap(paired_scores_a, paired_scores_b, resamples: int,
     centered = [b - observed for b in boots]
     extreme = sum(1 for c in centered if abs(c) >= abs(observed))
     return {"delta": observed, "ci_lo": pct(0.025), "ci_hi": pct(0.975),
-            "p_two_sided": extreme / resamples}
+            "p_two_sided": extreme / resamples,
+            "p_resolution": 1.0 / resamples}
 
 
 def holm(p_values) -> dict:

@@ -9,20 +9,34 @@ Context contract (all optional):
 
 Sandbox (#12): disposable temp dir, scrubbed environment, wall-clock
 timeout and RLIMIT_AS/RLIMIT_CPU from config.safety.sandbox. No OS
-netns in this build: network absence is enforced by the scrubbed env
-and is RESTATED HONESTLY in the audit event — full isolation is the
-OS's job (documented in docs/no_goals.md's spirit: fail-loud honesty).
+netns in this build: the child runs as the SAME user and CAN reach
+the network. `no_network_requested` mirrors the configuration REQUEST
+— it is NOT a verified property of the sandbox. The result dict
+reports `isolation_profile: subprocess+rlimits` so callers can record
+what was actually enforced; piping that into the per-action audit
+event is declared PENDING (README raíz, Pendientes declarados).
+Honesty rules: fail-loud, never fake a security property we do not
+have. POSIX-only (resource/preexec_fn): on Windows this module fails
+at import with guidance, never silently.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
-import resource
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+if os.name == "nt":  # pragma: no cover - platform guard
+    raise RuntimeError(
+        "sandbox POSIX-only: 'resource'/preexec_fn no existen en Windows. "
+        "Ejecuta ATLAS bajo WSL2 o Linux (fail-loud con causa, no un "
+        "ImportError opaco).")
+
+import resource
 
 from atlas_ns.verify.composite import Verdict
 from atlas_ns.verify.schema import (
@@ -84,7 +98,8 @@ class ProgrammaticVerifier:
             return {"ran": True, "passed": passed, "exit_code": exit_code,
                     "stderr_tail": stderr,
                     "ms": round((_time.monotonic() - t0) * 1000, 1),
-                    "no_network_enforced": self.limits.no_network}
+                    "no_network_requested": self.limits.no_network,
+                    "isolation_profile": "subprocess+rlimits"}
 
     # -- verify ---------------------------------------------------------------
     def verify(self, claim: str, context: dict | None = None) -> Verdict:

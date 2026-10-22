@@ -31,10 +31,16 @@ mcp-serve:
 	$(PY) scripts/mcp_server.py --config config.yaml
 
 rft:
-	$(PY) scripts/rft_round.py --config config.yaml --round $(ROUND)
+	@echo "PENDIENTE declarado (v1.0.2): scripts/rft_round.py es un esqueleto fail-loud."
+	@echo "FASE 5 se midio via harness gaea_v: ../gaea_v/scripts/run_fase5.py (prereg_20261020_rft_rondas_v2)."
+	@echo "Ver README raiz (Pendientes declarados) y docs/ANEXO_CIERRE_fase7_atlas.md."
+	@exit 2
 
 lineage:
-	$(PY) scripts/lineage_round.py --config config.yaml --round $(ROUND)
+	@echo "PENDIENTE declarado (v1.0.2): scripts/lineage_round.py es un esqueleto fail-loud."
+	@echo "FASE 6 se midio via harness gaea_v: ../gaea_v/scripts/lineage_measured.py (lineage_defs_20261021)."
+	@echo "Ver README raiz (Pendientes declarados) y docs/ANEXO_CIERRE_fase7_atlas.md."
+	@exit 2
 
 bench:
 	$(PY) scripts/bench.py --config config.yaml --profile $(PROFILE)
