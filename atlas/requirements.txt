@@ -1,0 +1,12 @@
+# ATLAS core (CPU-first; zero LLM-API dependencies by design)
+numpy>=1.26,<2.1
+pyyaml>=6,<7
+jsonschema>=4.21,<4.24
+networkx>=3.3,<3.5
+pandas>=2.1,<2.3
+tqdm>=4.66,<4.68
+pytest>=8,<9
+
+# Optional bridges (installed when the sibling repo is used):
+# torch/peft/transformers -> RFT + probe bridge (GPU-conditional for lineage)
+# mcp>=1.0            -> native MCP transport (stdio fallback ships without it)

@@ -1,0 +1,67 @@
+MANIFIESTO DE ENTREGA — GAEA-VERIFICADOR (gaea_v)
+Estado: FASES -1 a 7 COMPLETAS con gates verdes (F-7 incluido).
+Fecha de congelacion de este estado: 2026-10-21 (UTC-6).
+
+COMPLETADO Y MEDIDO
+- FASE -1: identidad del ecosistema verificada por huellas congeladas
+  (prompt maestro ae409daf..., heph 23981267..., champion 499e8c53...,
+  holdout 62d8992a3add..., ATLAS HEAD ecb494b). 165/165 tests de
+  ATLAS, audit ok, bridge 5/5, humo degenerado esperado.
+- FASE 0: arbol completo, 14 anclas congeladas, config_sha256
+  encadenado, git bootstrap (2 commits del protocolo).
+- FASE 1: stats_core unica (wilson, bootstrap pareado, holm, tost,
+  ece, auc, power_epsilon). Validacion sintetica: d=0 sin falsos
+  positivos; d>=0.20 recuperado 5/5; Holm conservador.
+- FASE 2: escalera n=100 congelada (suite_digest e775280a...; T1
+  importada de ATLAS, T2 30 mutacion, T3 20 adversarias con 10 bugs
+  probados reales). Piloto medido: nano 0.0/0.0/0.0, atlas
+  1.00/0.0/0.0 por tier; T2 y T3 NO saturados; epsilon 0.15
+  (potencia 0.80, var 0.2525, semilla 42) registrado en prereg
+  variance_only ANTES de cualquier comparacion.
+- FASE 3: zoo 30 ataques congelado. Ronda inicial honesta: catch
+  global 0.8333 FAIL (malicious 0.00, 3 APPROVE), fpr_clean 0.00.
+  Correccion del verificador hecha EN ATLAS por sus gates (plugin
+  policy, commit 4427672; enmienda de ancla atlas_git_head
+  registrada ANTES de datos). Re-lectura congelada ZOO_BASELINE v2:
+  catch_global 1.00, fpr_clean 0.00, 6/6 categorias 1.00.
+- FASE 4: probe calibrado con decision en 200 ejemplos sandbox
+  (status desactivado, pesos renormalizados; neutral 0.5 prohibido).
+  Humo frontera unica: run 048e92241fa8, 100 tareas, manifiesto
+  Anexo A validado, contaminacion 0.
+- FASE 5: RFT medido con prereg v2 encadenado antes de datos. Ronda
+  1: 800 candidatos, 0 aceptados (training skipped, causa
+  empty_accepted_set). Inferencia final Holm: H2 delta 0.5 IC
+  [0.4,0.6] p_holm 0.0 RECLAMADA; H3 delta 0.25 IC [0.17,0.34]
+  p_holm 0.0 RECLAMADA; H1 delta 0.0 NO reclamada; H4 no evaluable
+  con causa. Promocion rechazada con causas documentadas.
+- FASE 6: bench 3 columnas real: nano 0.0 acc / 22.8582 CPU-s /
+  0 nodos; atlas 0.5 acc / 245.6482 CPU-s / 800 nodos (3.26 nodos/s).
+  HB1 reclamada (delta 0.5 IC [0.4,0.6], p_holm 0.0, prereg
+  421d8e88... encadenado antes de datos). Linaje G1-G4 con decision
+  expand=false y causa G3 pacing. policy_contract v1 congelado
+  GAEA-ready. atlas_int8 not_measurable con causa mecanica.
+  cloud_reference null por no-go.
+- FASE 7: README final con tabla "Measured metrics" (run_id por
+  celda, sin placeholders), no_goals.md verbatim de la seccion 6 del
+  prompt maestro (diff normalizado: match), empaquetado
+  gaea_v_entrega.zip (sin .venv, .gitkeep garantizado en todo
+  directorio vacio, artifacts/logs/profiles como evidencia) +
+  SHA256SUMS_GAEA_V.txt con los 4 hashes (repo, artefactos, METRICS,
+  manifiesto), verificados con sha256sum -c (4/4 OK). Verificacion
+  externa: los 8 pasos del Anexo E ejecutados sobre el paquete
+  extraido; resultado en docs/ANEXO_E_verificacion_externa.md.
+
+PENDIENTE DECLARADO (nunca implicito)
+- FASE 7 de ATLAS: pertenece al prompt y gates de ATLAS; esta
+  entrega cierra la capa de medicion que esa fase requiere.
+- Columna cloud_reference: null por no-go vinculante de nube.
+- Columna atlas_int8: sin medir, causa mecanica en
+  artifacts/fase6_h4_int8.json.
+
+CADENA DE AUDITORIA
+logs/audit.jsonl: 52 eventos encadenados desde genesis (config_
+sha256, champion_tag, bridge_check, baseline, t1_imported,
+suite_frozen, prereg_registered, pilot_power_derived,
+zoo_baseline_frozen, zoo_regression_rule_frozen, enmienda S-08,
+probe_calibrado, smoke_run, rft rondas, bench, lineage, bench_doc).
+make audit-verify -> ok (first_bad_seq null).

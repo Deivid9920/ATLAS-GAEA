@@ -1,0 +1,1 @@
+"""Expansion planner: block-stacking / Net2Net width growth (Net2Net/LLaMA-Pro style) governed by lineage.rules.decide_expansion. On CPU: DRY-RUN only — emits the expansion plan + GPU command into docs/lineage_plan.md; never trains beyond ceiling."""

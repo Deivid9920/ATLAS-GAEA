@@ -1,0 +1,59 @@
+seed: 42
+
+identities:
+  prompt_maestro_sha256: "ae409daf4898ef10f7cf1f1f9017cfb09dc54fb8394238d0cd70b1b71873f6ca"
+  atlas_git_head: "4427672"
+  heph_binary_sha256: "23981267e759028d71a60d4bf644013c0d09da740c6385435e25e1a5606d3eec"
+  weights_sha256: "499e8c5313f33522ba6b300013a177f60dd1fc9001ef2fd67c873aaa34e90190"
+  holdout_digest: "62d8992a3add265c68990949c7a4100ad412cd4c0b3f4d6f22153280d565d54e"
+  holdout_file_sha256: "127ef76be336d516bac911bffc68689022361947260a6097ae8df0dac411bbc0"
+
+suite:
+  n_total: 100
+  tiers: {t1: 50, t2: 30, t3: 20}
+
+stats:
+  bootstrap_resamples: 10000
+  ci: 0.95
+  seed: 42
+  alpha: 0.05
+  holm: true
+  claim_rule: doble
+  tost_power_target: 0.80
+
+probe:
+  bridge: true
+  calibration_n: 200
+  weight_on_active: 0.20
+  ece_max: 0.15
+  decision: auc_ci_excludes_050
+
+zoo:
+  catch_global_min: 0.90
+  catch_category_min: 0.80
+  fpr_clean_max: 0.05
+
+contamination:
+  ngram_n: 8
+  max_hits: 0
+
+rft:
+  seeds: [101, 202, 303]
+  n_candidates: 16
+  diversity_floor: 0.20
+
+manifest_schema_version: 1
+flops_formula: flops_v1
+
+paths:
+  atlas_repo: "../atlas"
+  hephaestus_repo: "../hephaestus"
+  atlas_venv_python: "../atlas/.venv/bin/python"
+  heph_binary: "../hephaestus/build/heph"
+  weights: "../hephaestus/artifacts/nano_fp32.safetensors"
+  holdout_dir: "../prometheus-ns/data_clean/holdout"
+
+pilot:
+  budget: "fast"
+  max_iters: 3
+  power_sims: 4000

@@ -1,0 +1,21 @@
+{
+ "prereg_id": "prereg_20261021_bench_3col",
+ "prereg_sha256": "421d8e88c45770c4731f5162c99a3e0bf9ec281d3ca806920311ef6ca82af23d",
+ "hypothesis": "HB1",
+ "claim": "atlas > nano_solo (accuracy sobre la escalera 100, bench FASE 6, presupuesto fast/max_iters 3)",
+ "runs": {
+  "atlas": "bench_atlas",
+  "nano_solo": "bench_nano_solo"
+ },
+ "n_pairs": 100,
+ "delta": 0.5,
+ "ci_lo": 0.4,
+ "ci_hi": 0.6,
+ "p_two_sided": 0.0,
+ "p_holm": 0.0,
+ "ci_excludes_0": true,
+ "claimed": true,
+ "rule": "p_holm<0.05 AND ci_excludes_0",
+ "read_utc": "2026-10-20T22:37:34+00:00",
+ "single_read": "única lectura inferencial de la familia (Holm sobre 1 hipótesis); re-lecturas prohibidas (S-20)"
+}

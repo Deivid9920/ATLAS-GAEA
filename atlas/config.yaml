@@ -1,0 +1,76 @@
+seed: 42
+
+bridge:
+  hephaestus_bin: "../hephaestus/build/heph"  # resolved at bridge-check
+  modes: {draft: ternary, worker: int8, final: fp32}
+  timeout_s: 60
+  mcp: {serve: true, transport: stdio}
+
+verifier:
+  tau_approve: 0.80         # weighted score needed to approve
+  tau_doubt: 0.35           # a vote below this counts as "doubt"
+  cache_size: 100000
+  plugins:                  # weights per plugin (profile may override)
+    programmatic: 0.45
+    symbolic: 0.35
+    probe: 0.20
+
+probe:
+  bridge: true              # use CASSANDRA if present; else unavailable
+  recalibrate_on_model_change: true
+
+orchestrator:
+  max_attempts: 3           # revise loops per task
+  step_budget: 64
+  resume: true
+
+memory:
+  kind: episodic            # {goal, plan, result, lesson} + BM25 retrieval
+  max_entries: 10000
+
+graph_versioning: true
+
+mcts:
+  anytime_budgets_s: {fast: 30, standard: 300, deep: 1800}
+  branching: 4
+  max_depth: 6
+  prune_below: 0.35         # node score floor (verifier-weighted)
+  c_uct: 1.4
+  memoize: true
+
+safety:
+  pii_scrub: true
+  fencing: true             # all external text wrapped <untrusted>
+  permissions:
+    hephaestus: execute
+    filesystem: write
+    network_crawl: readonly
+  sandbox: {timeout_s: 20, mem_mb: 512, no_network: true}
+
+rft:
+  n_candidates: 16
+  rounds_per_cycle: 2
+  diversity_floor: 0.20     # inherited NS guard (anti reward-hacking)
+  curriculum: true
+  active_learning_queue: true
+
+lineage:
+  growth:
+    min_fail_rate: 0.15     # G1: suite failure rate to justify growth
+    min_unrecovered_rate: 0.05  # G1: failures MCTS could not recover
+    diversity_floor: 0.80   # G2
+    min_generations_between: 3  # G3
+    ceiling_params: 7.0e+9  # G4 (CPU inference int4 viability bound)
+  merge: {method: ties, density: 0.7}
+  expand: {method: block_stacking, init: identity}
+
+profiles:
+  active: code_qa
+  available: [code_qa, finance_docs]
+
+bench:
+  three_column: true
+  cloud_reference: null     # set only with explicit user approval
+
+fit:
+  autoconfig: true

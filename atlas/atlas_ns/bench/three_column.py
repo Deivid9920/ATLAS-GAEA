@@ -1,0 +1,1 @@
+"""Three-column benchmark (#22): per profile {nano-solo, ATLAS, cloud-reference} x {accuracy, cost/task, latency}; cloud column requires explicit config.bench.cloud_reference and is labeled 'reference only'. Writes docs/bench_{profile}.md from real runs."""

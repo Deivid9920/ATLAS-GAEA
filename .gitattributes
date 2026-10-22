@@ -1,0 +1,4 @@
+# Pesos del champion congelado (53 MB): Git LFS obligatorio.
+# Instalar git-lfs ANTES de clonar; sin él, el archivo llega como puntero
+# y el bridge-check falla por hash (fail-loud, por diseño).
+*.safetensors filter=lfs diff=lfs merge=lfs -text

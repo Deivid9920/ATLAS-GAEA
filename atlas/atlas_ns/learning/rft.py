@@ -1,0 +1,1 @@
+"""RFT loop (FASE 5): STaR by rejection sampling — generate N candidates, composite verifier filters, SFT (LoRA, CPU 0.5B; NS nano for smoke) over successes; diversity floor + curriculum + active-learning queue integrated; every round audited."""

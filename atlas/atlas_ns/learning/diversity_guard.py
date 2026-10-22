@@ -1,0 +1,1 @@
+"""Diversity guard (#16, inherited from NS): distinct-n / self-BLEU style diversity over RFT outputs; floor enforced as part of RFT fitness — anti reward-hacking guard (no degenerate 'never contradict' policies)."""

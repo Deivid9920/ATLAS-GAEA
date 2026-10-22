@@ -1,0 +1,13 @@
+{
+ "metric": "retencion de veredictos del compuesto int8 vs fp32 sobre las 100 tareas (FASE 6.e)",
+ "status": "not_measurable",
+ "cause": "el compuesto de verificacion no tiene eje de precision: op_evaluate no acepta bridge_mode, y el generador heph de este build es fp32-only (el eje int8 quedo declarado no evaluable en FASE 5, evento seq 30 h4_not_measurable)",
+ "mechanical_attempt": {
+  "action": "hook.generate weights_variant=int8",
+  "prompt_sha256": "e5a03eee0e9992c16813c082ff6dccb53fa1f3fed50a95c35ade549e4bde0b5f",
+  "result": "refused",
+  "error": "BridgeError: atlas op generate failed: RuntimeError: heph generate failed: b'heph generate: safetensors header exceeds file size\\n'"
+ },
+ "disposition": "la columna atlas_int8 del Anexo A permanece sin medir con causa; F-01 (cuantizacion adaptativa) exige zoo en verde antes de conmutar precision",
+ "registered_utc": "2026-10-20T22:37:34+00:00"
+}

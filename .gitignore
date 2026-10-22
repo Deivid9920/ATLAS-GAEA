@@ -1,0 +1,25 @@
+# ---- Python (venv y caches de make setup) ----
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- Sistemas y editores ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ---- Notas de política (NO borrar) ----
+# 1. logs/ y artifacts/ SON evidencia versionada: cadenas de auditoría, manifiestos
+#    y run_ids. No se ignoran.
+# 2. hephaestus/build/heph es el binario CONGELADO por huella sha256 (23981267…).
+#    No se ignora y no se recompila en el repo: un binario distinto rompe la
+#    identidad S-01 del ecosistema (ver README, sección Identidades congeladas).
+# 3. Los pesos *.safetensors viajan por Git LFS (ver .gitattributes).

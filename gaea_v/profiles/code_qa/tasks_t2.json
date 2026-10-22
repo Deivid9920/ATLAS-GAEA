@@ -1,0 +1,518 @@
+{
+ "tier": "t2",
+ "n": 30,
+ "digest": "8a602d994b057311b0e87f11949edb536e90ecb4afe8cb883912ff6ae33e3917",
+ "frozen_utc": "2026-10-20T04:00:30+00:00",
+ "tasks": [
+  {
+   "id": "T2-0000",
+   "tier": "t2",
+   "family": "sum_nested",
+   "prompt": "Write sum_nested(items): total of the 'v' field over items=[{'v': 3}, {'v': 1}, {'v': 4}, {'v': 1}] (dicts shaped {'v': x}).",
+   "tests": "assert sum_nested([{'v': 3}, {'v': 1}, {'v': 4}, {'v': 1}]) == 9\nassert sum_nested([]) == 0\n",
+   "canonical_solution": "def sum_nested(items):\n    return sum(it['v'] for it in items)\n",
+   "triplets": [
+    {
+     "subject": "sum_list",
+     "predicate": "computes",
+     "object": "total_of_integers"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "2fb74caa0e4ef1732868eaa63f4616331863db0f3d73201db749f713a7538ac0"
+  },
+  {
+   "id": "T2-0001",
+   "tier": "t2",
+   "family": "sum_nested",
+   "prompt": "Write sum_nested(items): total of the 'v' field over items=[{'v': 2}, {'v': 7}, {'v': 1}] (dicts shaped {'v': x}).",
+   "tests": "assert sum_nested([{'v': 2}, {'v': 7}, {'v': 1}]) == 10\nassert sum_nested([]) == 0\n",
+   "canonical_solution": "def sum_nested(items):\n    return sum(it['v'] for it in items)\n",
+   "triplets": [
+    {
+     "subject": "sum_list",
+     "predicate": "computes",
+     "object": "total_of_integers"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "91ab2ac354c434bc35fca878167b3b6a5c5945a5707aa4941b328e29b9613ae2"
+  },
+  {
+   "id": "T2-0002",
+   "tier": "t2",
+   "family": "sum_nested",
+   "prompt": "Write sum_nested(items): total of the 'v' field over items=[{'v': 5}, {'v': 5}, {'v': 5}, {'v': 5}] (dicts shaped {'v': x}).",
+   "tests": "assert sum_nested([{'v': 5}, {'v': 5}, {'v': 5}, {'v': 5}]) == 20\nassert sum_nested([]) == 0\n",
+   "canonical_solution": "def sum_nested(items):\n    return sum(it['v'] for it in items)\n",
+   "triplets": [
+    {
+     "subject": "sum_list",
+     "predicate": "computes",
+     "object": "total_of_integers"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "394dbb896fd25ba9580a926f5b984058135f6b251a8ebc2f235c5ff1f05baf02"
+  },
+  {
+   "id": "T2-0003",
+   "tier": "t2",
+   "family": "merge3",
+   "prompt": "Write merge3(a, b, c) merging three sorted lists. a=[1, 4] b=[2, 6, 9] c=[3, 5]",
+   "tests": "assert merge3([1, 4], [2, 6, 9], [3, 5]) == [1, 2, 3, 4, 5, 6, 9]\nassert merge3([], [], []) == []\n",
+   "canonical_solution": "def merge3(a, b, c):\n    import heapq\n    return list(heapq.merge(a, b, c))\n",
+   "triplets": [
+    {
+     "subject": "merge_two_sorted_lists",
+     "predicate": "produces",
+     "object": "sorted_union_preserving_order"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "deceb3f12bedeed20f71de61ac8ba08f37df03301cdf4985739c4af5103ad873"
+  },
+  {
+   "id": "T2-0004",
+   "tier": "t2",
+   "family": "merge3",
+   "prompt": "Write merge3(a, b, c) merging three sorted lists. a=[0, 2, 7] b=[1] c=[3, 8]",
+   "tests": "assert merge3([0, 2, 7], [1], [3, 8]) == [0, 1, 2, 3, 7, 8]\nassert merge3([], [], []) == []\n",
+   "canonical_solution": "def merge3(a, b, c):\n    import heapq\n    return list(heapq.merge(a, b, c))\n",
+   "triplets": [
+    {
+     "subject": "merge_two_sorted_lists",
+     "predicate": "produces",
+     "object": "sorted_union_preserving_order"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "7cc6329eb20b1feff68ac06e812fdc0a66be5220bfabb52999f5e5a59a6589a7"
+  },
+  {
+   "id": "T2-0005",
+   "tier": "t2",
+   "family": "merge3",
+   "prompt": "Write merge3(a, b, c) merging three sorted lists. a=[5] b=[1, 8] c=[2, 6]",
+   "tests": "assert merge3([5], [1, 8], [2, 6]) == [1, 2, 5, 6, 8]\nassert merge3([], [], []) == []\n",
+   "canonical_solution": "def merge3(a, b, c):\n    import heapq\n    return list(heapq.merge(a, b, c))\n",
+   "triplets": [
+    {
+     "subject": "merge_two_sorted_lists",
+     "predicate": "produces",
+     "object": "sorted_union_preserving_order"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "d021347adb669ba7c23e1533c62b97aa3f508b1b200267846d0271d652e62426"
+  },
+  {
+   "id": "T2-0006",
+   "tier": "t2",
+   "family": "dedupe_by",
+   "prompt": "Write dedupe_by(xs) keeping the first occurrence of each word ignoring case. xs=['A', 'b', 'a', 'C', 'B']",
+   "tests": "assert dedupe_by(['A', 'b', 'a', 'C', 'B']) == ['A', 'b', 'C']\nassert dedupe_by([]) == []\n",
+   "canonical_solution": "def dedupe_by(xs):\n    seen = set()\n    out = []\n    for x in xs:\n        k = x.lower()\n        if k not in seen:\n            seen.add(k)\n            out.append(x)\n    return out\n",
+   "triplets": [
+    {
+     "subject": "dedupe_preserve_order",
+     "predicate": "preserves",
+     "object": "first_occurrences"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "5ab0e09949edb99b7fee30d586eba84345b6b2dac950c03b1907cd461724a2e2"
+  },
+  {
+   "id": "T2-0007",
+   "tier": "t2",
+   "family": "dedupe_by",
+   "prompt": "Write dedupe_by(xs) keeping the first occurrence of each word ignoring case. xs=['x', 'X', 'y']",
+   "tests": "assert dedupe_by(['x', 'X', 'y']) == ['x', 'y']\nassert dedupe_by([]) == []\n",
+   "canonical_solution": "def dedupe_by(xs):\n    seen = set()\n    out = []\n    for x in xs:\n        k = x.lower()\n        if k not in seen:\n            seen.add(k)\n            out.append(x)\n    return out\n",
+   "triplets": [
+    {
+     "subject": "dedupe_preserve_order",
+     "predicate": "preserves",
+     "object": "first_occurrences"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "283516085e43092c3970c549a5a68d972a91b9c9c27ed66b99fef320731b1218"
+  },
+  {
+   "id": "T2-0008",
+   "tier": "t2",
+   "family": "dedupe_by",
+   "prompt": "Write dedupe_by(xs) keeping the first occurrence of each word ignoring case. xs=['k', 'K', 'K', 'k', 'm']",
+   "tests": "assert dedupe_by(['k', 'K', 'K', 'k', 'm']) == ['k', 'm']\nassert dedupe_by([]) == []\n",
+   "canonical_solution": "def dedupe_by(xs):\n    seen = set()\n    out = []\n    for x in xs:\n        k = x.lower()\n        if k not in seen:\n            seen.add(k)\n            out.append(x)\n    return out\n",
+   "triplets": [
+    {
+     "subject": "dedupe_preserve_order",
+     "predicate": "preserves",
+     "object": "first_occurrences"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "b3c7168c30ea03f8950df9fdf529229836f01902a16f98b135a9cb001746a64d"
+  },
+  {
+   "id": "T2-0009",
+   "tier": "t2",
+   "family": "bsearch_insert",
+   "prompt": "Write insert_pos(xs, t): the index where t should be inserted to keep sorted xs ascending. xs=[1, 3, 5, 7] t=4",
+   "tests": "assert insert_pos([1, 3, 5, 7], 4) == 2\nassert insert_pos([], 4) == 0\n",
+   "canonical_solution": "def insert_pos(xs, t):\n    lo, hi = 0, len(xs)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if xs[mid] < t:\n            lo = mid + 1\n        else:\n            hi = mid\n    return lo\n",
+   "triplets": [
+    {
+     "subject": "bsearch",
+     "predicate": "requires",
+     "object": "inputs_sorted_ascending"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "b7a240ec35ef7a8707e5e85eebc85a412741ddbe339867b750cf041ca2628520"
+  },
+  {
+   "id": "T2-0010",
+   "tier": "t2",
+   "family": "bsearch_insert",
+   "prompt": "Write insert_pos(xs, t): the index where t should be inserted to keep sorted xs ascending. xs=[2, 4] t=1",
+   "tests": "assert insert_pos([2, 4], 1) == 0\nassert insert_pos([], 1) == 0\n",
+   "canonical_solution": "def insert_pos(xs, t):\n    lo, hi = 0, len(xs)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if xs[mid] < t:\n            lo = mid + 1\n        else:\n            hi = mid\n    return lo\n",
+   "triplets": [
+    {
+     "subject": "bsearch",
+     "predicate": "requires",
+     "object": "inputs_sorted_ascending"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "cce9f7034fa238a504dc219a3f877ff3a1f59bb9aeac89481866de52f7eaaf8b"
+  },
+  {
+   "id": "T2-0011",
+   "tier": "t2",
+   "family": "bsearch_insert",
+   "prompt": "Write insert_pos(xs, t): the index where t should be inserted to keep sorted xs ascending. xs=[1, 2, 3] t=9",
+   "tests": "assert insert_pos([1, 2, 3], 9) == 3\nassert insert_pos([], 9) == 0\n",
+   "canonical_solution": "def insert_pos(xs, t):\n    lo, hi = 0, len(xs)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if xs[mid] < t:\n            lo = mid + 1\n        else:\n            hi = mid\n    return lo\n",
+   "triplets": [
+    {
+     "subject": "bsearch",
+     "predicate": "requires",
+     "object": "inputs_sorted_ascending"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "512653dbee012f4f5369f8b7686e43d2220526d579134a2dcd73fadf7d110334"
+  },
+  {
+   "id": "T2-0012",
+   "tier": "t2",
+   "family": "count_vowels_acc",
+   "prompt": "Write count_vowels_u(s) counting vowels including accented ones (aeiouáéíóú) in s='canción'.",
+   "tests": "assert count_vowels_u('canción') == 3\nassert count_vowels_u('xyz') == 0\n",
+   "canonical_solution": "def count_vowels_u(s):\n    return sum(1 for c in s.lower() if c in 'aeiouáéíóú')\n",
+   "triplets": [
+    {
+     "subject": "count_vowels",
+     "predicate": "counts",
+     "object": "vowel_characters"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "d8e7684d81c62c3dde69f34364aef19717c205afdfcb1b74f51fc197f8f88b3d"
+  },
+  {
+   "id": "T2-0013",
+   "tier": "t2",
+   "family": "count_vowels_acc",
+   "prompt": "Write count_vowels_u(s) counting vowels including accented ones (aeiouáéíóú) in s='raíz azul'.",
+   "tests": "assert count_vowels_u('raíz azul') == 4\nassert count_vowels_u('xyz') == 0\n",
+   "canonical_solution": "def count_vowels_u(s):\n    return sum(1 for c in s.lower() if c in 'aeiouáéíóú')\n",
+   "triplets": [
+    {
+     "subject": "count_vowels",
+     "predicate": "counts",
+     "object": "vowel_characters"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "e8512052d9108752f41465f7891cd94c8c4e6e157769d282909b917dd28a2ec5"
+  },
+  {
+   "id": "T2-0014",
+   "tier": "t2",
+   "family": "count_vowels_acc",
+   "prompt": "Write count_vowels_u(s) counting vowels including accented ones (aeiouáéíóú) in s='murciélago'.",
+   "tests": "assert count_vowels_u('murciélago') == 5\nassert count_vowels_u('xyz') == 0\n",
+   "canonical_solution": "def count_vowels_u(s):\n    return sum(1 for c in s.lower() if c in 'aeiouáéíóú')\n",
+   "triplets": [
+    {
+     "subject": "count_vowels",
+     "predicate": "counts",
+     "object": "vowel_characters"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "3ab3c1db18115ef8c416b2b67a0e5374559cb41b1a0a84cb1f7ae65bd54e5899"
+  },
+  {
+   "id": "T2-0015",
+   "tier": "t2",
+   "family": "second_smallest",
+   "prompt": "Write second_smallest(xs): second smallest distinct value in xs=[4, 1, 3, 1].",
+   "tests": "assert second_smallest([4, 1, 3, 1]) == 3\nassert second_smallest([5, 5, 6]) == 6\n",
+   "canonical_solution": "def second_smallest(xs):\n    return sorted(set(xs))[1]\n",
+   "triplets": [
+    {
+     "subject": "second_largest",
+     "predicate": "computes",
+     "object": "second_maximum"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "3128a01d70dcb65a791d670739e5e75a753d31aa27202cbbcc62f659b1ec1ad8"
+  },
+  {
+   "id": "T2-0016",
+   "tier": "t2",
+   "family": "second_smallest",
+   "prompt": "Write second_smallest(xs): second smallest distinct value in xs=[9, 7].",
+   "tests": "assert second_smallest([9, 7]) == 9\nassert second_smallest([5, 5, 6]) == 6\n",
+   "canonical_solution": "def second_smallest(xs):\n    return sorted(set(xs))[1]\n",
+   "triplets": [
+    {
+     "subject": "second_largest",
+     "predicate": "computes",
+     "object": "second_maximum"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "9afe0d2caf02c199dd893776238f657b648f16865d26940f4c3635b69d8a83ad"
+  },
+  {
+   "id": "T2-0017",
+   "tier": "t2",
+   "family": "second_smallest",
+   "prompt": "Write second_smallest(xs): second smallest distinct value in xs=[2, 2, 3, 1].",
+   "tests": "assert second_smallest([2, 2, 3, 1]) == 2\nassert second_smallest([5, 5, 6]) == 6\n",
+   "canonical_solution": "def second_smallest(xs):\n    return sorted(set(xs))[1]\n",
+   "triplets": [
+    {
+     "subject": "second_largest",
+     "predicate": "computes",
+     "object": "second_maximum"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "ba94bf7cd57fc50aab0ab74ed1293c7e309d14cef78a233a860563850800ed88"
+  },
+  {
+   "id": "T2-0018",
+   "tier": "t2",
+   "family": "palindrome_clean",
+   "prompt": "Write is_palindrome_clean(s): True iff s='A man, a plan!' reads the same ignoring punctuation, spaces and case.",
+   "tests": "assert is_palindrome_clean('A man, a plan!') is False\nassert is_palindrome_clean('!!') is True\n",
+   "canonical_solution": "def is_palindrome_clean(s):\n    t = ''.join(c.lower() for c in s if c.isalnum())\n    return t == t[::-1]\n",
+   "triplets": [
+    {
+     "subject": "is_palindrome",
+     "predicate": "checks",
+     "object": "symmetric_string"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "61924db1307181d835412c142d217c33e4c97eb6387b841a1471746e54159aae"
+  },
+  {
+   "id": "T2-0019",
+   "tier": "t2",
+   "family": "palindrome_clean",
+   "prompt": "Write is_palindrome_clean(s): True iff s='Ab; ba' reads the same ignoring punctuation, spaces and case.",
+   "tests": "assert is_palindrome_clean('Ab; ba') is True\nassert is_palindrome_clean('!!') is True\n",
+   "canonical_solution": "def is_palindrome_clean(s):\n    t = ''.join(c.lower() for c in s if c.isalnum())\n    return t == t[::-1]\n",
+   "triplets": [
+    {
+     "subject": "is_palindrome",
+     "predicate": "checks",
+     "object": "symmetric_string"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "7ba56cb302f4b992a70fff52003cf9fa7cead8942135aed85615a93c8bc35403"
+  },
+  {
+   "id": "T2-0020",
+   "tier": "t2",
+   "family": "palindrome_clean",
+   "prompt": "Write is_palindrome_clean(s): True iff s='No x in Nixon' reads the same ignoring punctuation, spaces and case.",
+   "tests": "assert is_palindrome_clean('No x in Nixon') is True\nassert is_palindrome_clean('!!') is True\n",
+   "canonical_solution": "def is_palindrome_clean(s):\n    t = ''.join(c.lower() for c in s if c.isalnum())\n    return t == t[::-1]\n",
+   "triplets": [
+    {
+     "subject": "is_palindrome",
+     "predicate": "checks",
+     "object": "symmetric_string"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "e836c56e6a97b2d04807dfdd2c7a68981b5ccabd2a6e2a6001ea5808f0414a08"
+  },
+  {
+   "id": "T2-0021",
+   "tier": "t2",
+   "family": "longest_word",
+   "prompt": "Write longest_word(words) returning the longest word (first on ties). words=['alpha', 'beta', 'gamma']",
+   "tests": "assert longest_word(['alpha', 'beta', 'gamma']) == 'alpha'\nassert longest_word(['hi']) == 'hi'\n",
+   "canonical_solution": "def longest_word(words):\n    return max(words, key=len)\n",
+   "triplets": [
+    {
+     "subject": "max_in_list",
+     "predicate": "computes",
+     "object": "maximum_value"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "d149d6f1c50e8327953158be4ad3c4dffb549eec19b52eef65a9e7b92e4df68c"
+  },
+  {
+   "id": "T2-0022",
+   "tier": "t2",
+   "family": "longest_word",
+   "prompt": "Write longest_word(words) returning the longest word (first on ties). words=['a', 'bb']",
+   "tests": "assert longest_word(['a', 'bb']) == 'bb'\nassert longest_word(['hi']) == 'hi'\n",
+   "canonical_solution": "def longest_word(words):\n    return max(words, key=len)\n",
+   "triplets": [
+    {
+     "subject": "max_in_list",
+     "predicate": "computes",
+     "object": "maximum_value"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "81a896f9f6c7b4ab84b85039ae87363d9db68b5c64437e46b78a01c5de0eff1f"
+  },
+  {
+   "id": "T2-0023",
+   "tier": "t2",
+   "family": "longest_word",
+   "prompt": "Write longest_word(words) returning the longest word (first on ties). words=['uno', 'dos', 'cuatro']",
+   "tests": "assert longest_word(['uno', 'dos', 'cuatro']) == 'cuatro'\nassert longest_word(['hi']) == 'hi'\n",
+   "canonical_solution": "def longest_word(words):\n    return max(words, key=len)\n",
+   "triplets": [
+    {
+     "subject": "max_in_list",
+     "predicate": "computes",
+     "object": "maximum_value"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "454171c3c5e645202e1dbc41d52ece042f964b99e5acedf9e49263d7cf1d317e"
+  },
+  {
+   "id": "T2-0024",
+   "tier": "t2",
+   "family": "reverse_words",
+   "prompt": "Write reverse_words(s): the words of s='alpha beta gamma' in reverse order, single spaces.",
+   "tests": "assert reverse_words('alpha beta gamma') == 'gamma beta alpha'\nassert reverse_words('') == ''\n",
+   "canonical_solution": "def reverse_words(s):\n    return ' '.join(s.split()[::-1])\n",
+   "triplets": [
+    {
+     "subject": "reverse_string",
+     "predicate": "produces",
+     "object": "reversed_string"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "4bc58828fa5c0b713b045d8564ffdda5d97cfad235739053ac7a05e85696c519"
+  },
+  {
+   "id": "T2-0025",
+   "tier": "t2",
+   "family": "reverse_words",
+   "prompt": "Write reverse_words(s): the words of s='hola mundo' in reverse order, single spaces.",
+   "tests": "assert reverse_words('hola mundo') == 'mundo hola'\nassert reverse_words('') == ''\n",
+   "canonical_solution": "def reverse_words(s):\n    return ' '.join(s.split()[::-1])\n",
+   "triplets": [
+    {
+     "subject": "reverse_string",
+     "predicate": "produces",
+     "object": "reversed_string"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "5d013adfd18529b426dcec2249c6bcde7d29cbb1a6998a50929ac31f7f0634ce"
+  },
+  {
+   "id": "T2-0026",
+   "tier": "t2",
+   "family": "reverse_words",
+   "prompt": "Write reverse_words(s): the words of s='a bb ccc' in reverse order, single spaces.",
+   "tests": "assert reverse_words('a bb ccc') == 'ccc bb a'\nassert reverse_words('') == ''\n",
+   "canonical_solution": "def reverse_words(s):\n    return ' '.join(s.split()[::-1])\n",
+   "triplets": [
+    {
+     "subject": "reverse_string",
+     "predicate": "produces",
+     "object": "reversed_string"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "c03b370ecde64bf48029795140fe28639a001d67e55d18e3da00595806d3b537"
+  },
+  {
+   "id": "T2-0027",
+   "tier": "t2",
+   "family": "count_tokens",
+   "prompt": "Write count_tokens(s): number of words in s='hola, mundo!' that contain at least one letter or digit.",
+   "tests": "assert count_tokens('hola, mundo!') == 2\nassert count_tokens('---') == 0\n",
+   "canonical_solution": "def count_tokens(s):\n    return sum(1 for w in s.split()\n                 if any(c.isalnum() for c in w))\n",
+   "triplets": [
+    {
+     "subject": "count_words",
+     "predicate": "counts",
+     "object": "whitespace_tokens"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "f92ef14f2afb837269e0e7c064c98b062a4c082a55c8eaa22141e49db6dc98c5"
+  },
+  {
+   "id": "T2-0028",
+   "tier": "t2",
+   "family": "count_tokens",
+   "prompt": "Write count_tokens(s): number of words in s='uno... dos' that contain at least one letter or digit.",
+   "tests": "assert count_tokens('uno... dos') == 2\nassert count_tokens('---') == 0\n",
+   "canonical_solution": "def count_tokens(s):\n    return sum(1 for w in s.split()\n                 if any(c.isalnum() for c in w))\n",
+   "triplets": [
+    {
+     "subject": "count_words",
+     "predicate": "counts",
+     "object": "whitespace_tokens"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "5133ef533da61be1cb57b20284a5823ed0e8c7afab159815b84c054ab56f5b05"
+  },
+  {
+   "id": "T2-0029",
+   "tier": "t2",
+   "family": "count_tokens",
+   "prompt": "Write count_tokens(s): number of words in s='a-b c' that contain at least one letter or digit.",
+   "tests": "assert count_tokens('a-b c') == 2\nassert count_tokens('---') == 0\n",
+   "canonical_solution": "def count_tokens(s):\n    return sum(1 for w in s.split()\n                 if any(c.isalnum() for c in w))\n",
+   "triplets": [
+    {
+     "subject": "count_words",
+     "predicate": "counts",
+     "object": "whitespace_tokens"
+    }
+   ],
+   "seed": 42,
+   "task_sha256": "413b4771b1f9c8b9dd361975361055990e579fb3e6b86aec008da18811f30a11"
+  }
+ ]
+}

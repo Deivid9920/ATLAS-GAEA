@@ -1,0 +1,24 @@
+{
+  "profile": "code_qa",
+  "seed": 42,
+  "nodes": [
+    {"id": "t_merge_sorted", "subject": "merge_two_sorted_lists", "predicate": "produces", "object": "sorted_union_preserving_order"},
+    {"id": "t_sorted_input", "subject": "merge_two_sorted_lists", "predicate": "requires", "object": "inputs_sorted_ascending"},
+    {"id": "t_sum_list", "subject": "sum_list", "predicate": "computes", "object": "total_of_integers"},
+    {"id": "t_max_in_list", "subject": "max_in_list", "predicate": "computes", "object": "maximum_value"},
+    {"id": "t_reverse_string", "subject": "reverse_string", "predicate": "produces", "object": "reversed_string"},
+    {"id": "t_count_vowels", "subject": "count_vowels", "predicate": "counts", "object": "vowel_characters"},
+    {"id": "t_is_palindrome", "subject": "is_palindrome", "predicate": "checks", "object": "symmetric_string"},
+    {"id": "t_dedupe", "subject": "dedupe_preserve_order", "predicate": "preserves", "object": "first_occurrences"},
+    {"id": "t_second_largest", "subject": "second_largest", "predicate": "computes", "object": "second_maximum"},
+    {"id": "t_bsearch", "subject": "bsearch", "predicate": "requires", "object": "inputs_sorted_ascending"},
+    {"id": "t_count_words", "subject": "count_words", "predicate": "counts", "object": "whitespace_tokens"},
+    {"id": "t_quicksort_unsorted", "subject": "quicksort", "predicate": "requires", "object": "comparison_operator"},
+    {"id": "t_bubblesort", "subject": "bubble_sort", "predicate": "produces", "object": "sorted_union_preserving_order"}
+  ],
+  "edges": [
+    {"source": "t_bubblesort", "target": "t_merge_sorted", "rel": "contradicts"},
+    {"source": "t_sorted_input", "target": "t_merge_sorted", "rel": "supports"},
+    {"source": "t_bsearch", "target": "t_merge_sorted", "rel": "supports"}
+  ]
+}

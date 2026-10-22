@@ -1,0 +1,75 @@
+{
+ "prereg": "prereg_20261020_rft_rondas_v2",
+ "created_utc": "2026-10-20T20:22:06+00:00",
+ "claims": {
+  "H1": {
+   "delta": 0.0,
+   "ci": [
+    0.0,
+    0.0
+   ],
+   "p": 1.0,
+   "p_holm": 1.0,
+   "ci_excludes_0": false,
+   "claimed": false
+  },
+  "H2": {
+   "delta": 0.5,
+   "ci": [
+    0.4,
+    0.6
+   ],
+   "p": 0.0,
+   "p_holm": 0.0,
+   "ci_excludes_0": true,
+   "claimed": true
+  },
+  "H3": {
+   "delta": 0.25,
+   "ci": [
+    0.17,
+    0.34
+   ],
+   "p": 0.0,
+   "p_holm": 0.0,
+   "ci_excludes_0": true,
+   "claimed": true
+  }
+ },
+ "H4": {
+  "status": "no_evaluable",
+  "cause": "chained: h4_not_measurable (heph generate is fp32-only in this build)",
+  "fp32_arm_run": "h4_nano_fp32"
+ },
+ "H5": {
+  "delta_point": 0.2,
+  "ci90": [
+   0.2,
+   0.2
+  ],
+  "epsilon": 0.15,
+  "inside": false,
+  "floor_holds_point": true,
+  "note": "pairwise_diversity saturates at 1.0 for sets of distinct short traces (measurement ceiling)"
+ },
+ "ns_diversity_gate": {
+  "entropy_drop": 0.0,
+  "passes": true
+ },
+ "promotion": {
+  "decision": "refused",
+  "reasons": [
+   "H1 (ronda vs baseline) no supera la regla doble: delta 0.0, p_holm 1.0",
+   "sin entrenamiento (0/800 candidatos aceptados): ppl de holdout sin movimiento >= 1%: gate NS ppl FALLA",
+   "veto V2 disponible pero ausente (probe desactivado/probe_desactivado): ronda sin veto Y sin promocion"
+  ]
+ },
+ "runs": {
+  "baseline_nano": "pilot-pilot_nano_solo-18f52267",
+  "baseline_atlas": "pilot-pilot_atlas-18f52267",
+  "rft_round_1_eval": "6370c75420b7",
+  "h3_verifier": "h3_poda_verificador",
+  "h3_random": "h3_poda_aleatoria",
+  "h4_fp32": "h4_nano_fp32"
+ }
+}

@@ -1,0 +1,37 @@
+{
+ "round": 1,
+ "eval_run_id": "6370c75420b7",
+ "created_utc": "2026-10-20T20:18:09+00:00",
+ "prereg_sha256": "cf38d994811def7ff080a134283d501637512340fa23b0dcd8ff491b765303c7",
+ "n_candidates": 800,
+ "n_accepted": 0,
+ "diversity": {
+  "baseline": {
+   "n_traces": 50,
+   "n_clusters": 10,
+   "cluster_entropy": 1.0,
+   "pairwise_diversity": 1.0,
+   "largest_cluster_frac": 0.1
+  },
+  "round": {
+   "n_traces": 160,
+   "n_clusters": 160,
+   "cluster_entropy": 1.0,
+   "pairwise_diversity": 1.0,
+   "largest_cluster_frac": 0.0063
+  },
+  "entropy_drop": 0.0,
+  "trace_source": "first_16_candidates_per_family (0 accepted)",
+  "ns_rule": "drop > 0.20 blocks promotion"
+ },
+ "training": {
+  "status": "skipped",
+  "cause": "empty_accepted_set (0 candidates survived the composite filter)",
+  "seeds_declared": [
+   101,
+   202,
+   303
+  ]
+ },
+ "promotion": "decided at final inference (Holm) with NS gates + veto state"
+}
