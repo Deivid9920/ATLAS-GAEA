@@ -1,0 +1,16 @@
+{
+ "task_id": "cli_crash_demo",
+ "goal": "Write sum_list(xs) summing xs=[1,2,3].",
+ "profile": "code_qa",
+ "max_attempts": 3,
+ "step_budget": 64,
+ "status": "failed",
+ "plan": [
+  "hephaestus",
+  "verify"
+ ],
+ "steps_used": 3,
+ "attempts": 3,
+ "result": "verdict:revise",
+ "cause": "revise at attempt cap"
+}

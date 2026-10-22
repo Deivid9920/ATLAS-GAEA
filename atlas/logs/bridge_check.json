@@ -1,0 +1,50 @@
+{
+  "config": "config.yaml",
+  "steps": [
+    {
+      "step": "resolve_binary",
+      "ok": true,
+      "ms": 0.1,
+      "detail": "/home/z/my-project/hephaestus/build/heph"
+    },
+    {
+      "step": "resolve_weights",
+      "ok": true,
+      "ms": 0.0,
+      "detail": "/home/z/my-project/hephaestus/artifacts/nano_fp32.safetensors"
+    },
+    {
+      "step": "health",
+      "ok": true,
+      "ms": 59.6,
+      "detail": {
+        "binary": "/home/z/my-project/hephaestus/build/heph",
+        "binary_sha256": "23981267e759028d71a60d4bf644013c0d09da740c6385435e25e1a5606d3eec",
+        "weights_sha256": "499e8c5313f33522ba6b300013a177f60dd1fc9001ef2fd67c873aaa34e90190",
+        "manifest": [
+          "arch = {'n_layer': 6, 'n_head': 6, 'n_kv_head': 6, 'd_model': 384, 'd_ff': 1024, 'max_seq': 256, 'vocab': 8000, 'd_head': None}"
+        ],
+        "tokenize_canary_len": 2,
+        "ok": true
+      }
+    },
+    {
+      "step": "tokenize_canary",
+      "ok": true,
+      "ms": 8.8,
+      "detail": {
+        "n_tokens": 3
+      }
+    },
+    {
+      "step": "generate_smoke",
+      "ok": true,
+      "ms": 45.7,
+      "detail": {
+        "prompt": "The meaning of",
+        "text": "IGIGIGIGIGIGIGIG"
+      }
+    }
+  ],
+  "ok": true
+}
