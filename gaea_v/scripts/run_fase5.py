@@ -17,6 +17,7 @@ banked text set; a single hit kills the stage (fail-loud).
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -38,14 +39,47 @@ from gv.harness.efficiency_manifest import validate_manifest  # noqa: E402
 from gv.harness.runner import run_condition  # noqa: E402
 from gv.harness.task_ladder import load_ladder  # noqa: E402
 from gv.lin.trace_diversity import trace_diversity  # noqa: E402
+from gv.stats.prereg import prereg_hash  # noqa: E402
 
 BASE = ROOT.parent
 HOLDOUT_DIR = BASE / "prometheus-ns" / "data_clean" / "holdout"
 CORPUS = BASE / "atlas" / "artifacts" / "selfplay" / "corpus_rft.jsonl"
 RFT_DIR = ROOT / "artifacts" / "rft" / "round_1"
-PREREG = "cf38d994811def7ff080a134283d501637512340fa23b0dcd8ff491b765303c7"
+ROUND1_PREREG = "cf38d994811def7ff080a134283d501637512340fa23b0dcd8ff491b765303c7"
+ROUND2_PREREG_REL = "artifacts/prereg/prereg_20261023_rft_ronda2.json"
+REGISTERED_ROUNDS = (1, 2)
 TEMPS = [round(0.50 + 0.05 * i, 2) for i in range(16)]
 N_H3_H4 = 100
+
+
+def resolve_round(n: int) -> dict:
+    """Round registry, declared BEFORE any round touches data.
+
+    1 = FASE 5 protocol frozen in v1.0 (byte-compatible: same prereg
+    sha, same dirs, same run ids). 2 = protocol re-execution round
+    (v1.2.0): new prereg registered in the chain BEFORE data, new
+    artifacts dir, run ids suffixed _r2. Unregistered rounds refuse
+    with cause — no round is ever improvised."""
+    if n not in REGISTERED_ROUNDS:
+        raise SystemExit(
+            f"ronda no registrada: {n}; registradas: "
+            f"{list(REGISTERED_ROUNDS)}")
+    if n == 1:
+        return {"round": 1, "prereg_sha256": ROUND1_PREREG,
+                "rft_dir": RFT_DIR, "suffix": ""}
+    p = ROOT / ROUND2_PREREG_REL
+    if not p.is_file():
+        raise SystemExit(
+            f"falta el preregistro de la ronda 2 ({p}) — el preregistro "
+            "va ANTES de los datos; no se mide una ronda sin él")
+    return {"round": 2,
+            # el manifiesto incrusta el hash CANÓNICO encadenado (sin
+            # created_utc), el mismo que registró prereg_registered —
+            # no el sha de los bytes del archivo
+            "prereg_sha256": prereg_hash(
+                json.loads(p.read_text(encoding="utf-8"))),
+            "rft_dir": ROOT / "artifacts" / "rft" / "round_2",
+            "suffix": "_r2"}
 
 
 def _git_head() -> str:
@@ -109,6 +143,7 @@ def stage_h3(hook: AtlasHook, config: dict, tasks: list,
     subset = _t1_subset(tasks)
     for cond, mode in (("h3_poda_verificador", "verifier"),
                        ("h3_poda_aleatoria", "random")):
+        # Round-1 frozen protocol; round 2 refuses h3/h4 in main().
         if only and mode != only:
             continue
         run_dir = ROOT / "artifacts" / "runs" / cond
@@ -135,7 +170,7 @@ def stage_h3(hook: AtlasHook, config: dict, tasks: list,
             heph_binary_sha256=config["identities"][
                 "heph_binary_sha256"],
             weights_sha256=config["identities"]["weights_sha256"],
-            seed=config["seed"], prereg_sha256=PREREG,
+            seed=config["seed"], prereg_sha256=ROUND1_PREREG,
             bridge_mode="fp32", probe_status="desactivado",
             notes=f"F5 H3 (prereg v2): MCTS prune_mode={mode}, "
                   f"budget fast, max_iters 1, escalera completa "
@@ -200,7 +235,7 @@ def stage_h4(hook: AtlasHook, config: dict, tasks: list,
             heph_binary_sha256=config["identities"][
                 "heph_binary_sha256"],
             weights_sha256=config["identities"]["weights_sha256"],
-            seed=config["seed"], prereg_sha256=PREREG,
+            seed=config["seed"], prereg_sha256=ROUND1_PREREG,
             bridge_mode="fp32" if variant == "fp32" else "int8",
             probe_status="desactivado",
             notes=f"F5 H4 (prereg v2): heph generate "
@@ -223,11 +258,14 @@ def stage_h4(hook: AtlasHook, config: dict, tasks: list,
 # -- stage candidates -----------------------------------------------------
 
 def stage_candidates(hook: AtlasHook, config: dict, chain: AuditChain,
-                     ) -> int:
+                     rr: dict | None = None) -> int:
+    rr = rr or {"round": 1, "prereg_sha256": ROUND1_PREREG,
+                "rft_dir": RFT_DIR, "suffix": ""}
+    rft_dir: Path = rr["rft_dir"]
     pool = [json.loads(l) for l in
             CORPUS.read_text(encoding="utf-8").splitlines() if l.strip()]
-    RFT_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = RFT_DIR / "candidates.jsonl"
+    rft_dir.mkdir(parents=True, exist_ok=True)
+    out_path = rft_dir / "candidates.jsonl"
     if out_path.exists():
         done = {(json.loads(l)["pool_task"],
                  json.loads(l)["temperature"])
@@ -253,9 +291,9 @@ def stage_candidates(hook: AtlasHook, config: dict, chain: AuditChain,
              out_path.read_text(encoding="utf-8").splitlines()
              if l.strip()]
     gate = _contamination_gate(texts, config, chain,
-                               "rft_round_1:candidates")
+                               f"rft_round_{rr['round']}:candidates")
     chain.append({"action": "rft_candidates_banked",
-                  "round": 1, "n_candidates": len(texts),
+                  "round": rr["round"], "n_candidates": len(texts),
                   "n_pool_tasks": len(pool), "temps": TEMPS,
                   "contamination": gate})
     chain.save(ROOT / "logs" / "audit.jsonl")
@@ -267,9 +305,12 @@ def stage_candidates(hook: AtlasHook, config: dict, chain: AuditChain,
 # -- stage filter ----------------------------------------------------------
 
 def stage_filter(hook: AtlasHook, config: dict, chain: AuditChain,
-                 ) -> int:
+                 rr: dict | None = None) -> int:
+    rr = rr or {"round": 1, "prereg_sha256": ROUND1_PREREG,
+                "rft_dir": RFT_DIR, "suffix": ""}
+    rft_dir: Path = rr["rft_dir"]
     cands = [json.loads(l) for l in
-             (RFT_DIR / "candidates.jsonl").read_text(
+             (rft_dir / "candidates.jsonl").read_text(
                  encoding="utf-8").splitlines() if l.strip()]
     accepted: list = []
     rows: list = []
@@ -287,20 +328,20 @@ def stage_filter(hook: AtlasHook, config: dict, chain: AuditChain,
                      "tests_passed": passed, "verdict": verdict})
         if passed and verdict == "approve":
             accepted.append(dict(c, code=code))
-    (RFT_DIR / "filter_rows.jsonl").write_text(
+    (rft_dir / "filter_rows.jsonl").write_text(
         "\n".join(canonical(r) for r in rows) + "\n", encoding="utf-8")
-    (RFT_DIR / "accepted.jsonl").write_text(
+    (rft_dir / "accepted.jsonl").write_text(
         "\n".join(canonical(a) for a in accepted) + "\n",
         encoding="utf-8")
     if accepted:
         _contamination_gate([a["text"] for a in accepted], config,
-                            chain, "rft_round_1:accepted")
+                            chain, f"rft_round_{rr['round']}:accepted")
     fps = sorted({fingerprint(a["code"]) for a in accepted})
-    (RFT_DIR / "corpus_fps.json").write_text(
-        json.dumps({"round": 1, "fingerprints": fps}) + "\n",
+    (rft_dir / "corpus_fps.json").write_text(
+        json.dumps({"round": rr["round"], "fingerprints": fps}) + "\n",
         encoding="utf-8")
     chain.append({"action": "rft_filter_completed",
-                  "round": 1, "n_candidates": len(cands),
+                  "round": rr["round"], "n_candidates": len(cands),
                   "n_accepted": len(accepted),
                   "corpus_fps": len(fps)})
     chain.save(ROOT / "logs" / "audit.jsonl")
@@ -312,7 +353,10 @@ def stage_filter(hook: AtlasHook, config: dict, chain: AuditChain,
 # -- stage eval (ronda 1 sobre la escalera) --------------------------------
 
 def stage_eval(hook: AtlasHook, config: dict, tasks: list,
-               chain: AuditChain) -> str:
+               chain: AuditChain, rr: dict | None = None) -> str:
+    rr = rr or {"round": 1, "prereg_sha256": ROUND1_PREREG,
+                "rft_dir": RFT_DIR, "suffix": ""}
+
     def solver(task: dict) -> dict:
         res = hook.solve(task, mode="nano", budget="fast", max_iters=1)
         return {"tests_passed": bool(res["tests_passed"]),
@@ -321,17 +365,17 @@ def stage_eval(hook: AtlasHook, config: dict, tasks: list,
                 "tokens_generated": res.get("tokens_generated", 0)}
 
     manifest = run_condition(
-        "rft_round_1", sorted(tasks, key=lambda t: t["id"]), solver,
-        ROOT / "artifacts" / "runs",
+        f"rft_round_{rr['round']}", sorted(tasks, key=lambda t: t["id"]),
+        solver, ROOT / "artifacts" / "runs",
         config_sha256=config_sha256(ROOT / "config.yaml"),
         git_head=_git_head(),
         atlas_git_head=config["identities"]["atlas_git_head"],
         heph_binary_sha256=config["identities"]["heph_binary_sha256"],
         weights_sha256=config["identities"]["weights_sha256"],
-        seed=config["seed"], prereg_sha256=PREREG, bridge_mode="fp32",
-        probe_status="desactivado",
-        notes="F5 ronda 1: evaluacion de la escalera con el champion "
-              "vigente; entrenamiento verado en round_manifest "
+        seed=config["seed"], prereg_sha256=rr["prereg_sha256"],
+        bridge_mode="fp32", probe_status="desactivado",
+        notes=f"F5 ronda {rr['round']}: evaluacion de la escalera con el "
+              "champion vigente; entrenamiento veredicto en round_manifest "
               "(cause registrado); seeds declarados 101/202/303",
         chain=chain)
     validate_manifest(manifest)
@@ -344,10 +388,13 @@ def stage_eval(hook: AtlasHook, config: dict, tasks: list,
 # -- stage diversity + round manifest --------------------------------------
 
 def stage_diversity(config: dict, chain: AuditChain, eval_run_id: str,
-                    ) -> None:
+                    rr: dict | None = None) -> None:
+    rr = rr or {"round": 1, "prereg_sha256": ROUND1_PREREG,
+                "rft_dir": RFT_DIR, "suffix": ""}
+    rft_dir: Path = rr["rft_dir"]
     pool = [json.loads(l) for l in
             CORPUS.read_text(encoding="utf-8").splitlines() if l.strip()]
-    accepted_path = RFT_DIR / "accepted.jsonl"
+    accepted_path = rft_dir / "accepted.jsonl"
     accepted = [json.loads(l) for l in
                 accepted_path.read_text(encoding="utf-8").splitlines()
                 if l.strip()] if accepted_path.exists() else []
@@ -356,7 +403,7 @@ def stage_diversity(config: dict, chain: AuditChain, eval_run_id: str,
         trace_source = "accepted_candidates"
     else:
         cands = [json.loads(l) for l in
-                 (RFT_DIR / "candidates.jsonl").read_text(
+                 (rft_dir / "candidates.jsonl").read_text(
                      encoding="utf-8").splitlines() if l.strip()]
         first_by_family: dict = {}
         for c in cands:
@@ -373,7 +420,7 @@ def stage_diversity(config: dict, chain: AuditChain, eval_run_id: str,
               "entropy_drop": round(drop, 4) if drop is not None
               else None, "trace_source": trace_source,
               "ns_rule": "drop > 0.20 blocks promotion"}
-    (RFT_DIR / "diversity.json").write_text(
+    (rft_dir / "diversity.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=1) + "\n",
         encoding="utf-8")
 
@@ -391,22 +438,24 @@ def stage_diversity(config: dict, chain: AuditChain, eval_run_id: str,
                           "the composite filter)",
                  "seeds_declared": seeds}
     round_manifest = {
-        "round": 1, "eval_run_id": eval_run_id,
+        "round": rr["round"], "eval_run_id": eval_run_id,
         "created_utc": datetime.now(timezone.utc).isoformat(
             timespec="seconds"),
-        "prereg_sha256": PREREG,
+        "prereg_sha256": rr["prereg_sha256"],
         "n_candidates": len(json.loads("[" + ",".join(
-            l for l in (RFT_DIR / "candidates.jsonl").read_text(
+            l for l in (rft_dir / "candidates.jsonl").read_text(
                 encoding="utf-8").splitlines() if l.strip()) + "]")),
         "n_accepted": len(accepted),
         "diversity": result, "training": train,
         "promotion": "decided at final inference (Holm) with NS "
-                     "gates + veto state",
+                     "gates + veto state" if rr["round"] == 1 else
+                     "none (ronda de protocolo, prereg sin hipótesis "
+                     "de promoción)",
     }
-    (RFT_DIR / "round_manifest.json").write_text(
+    (rft_dir / "round_manifest.json").write_text(
         json.dumps(round_manifest, ensure_ascii=False, indent=1) + "\n",
         encoding="utf-8")
-    chain.append({"action": "rft_round_completed", "round": 1,
+    chain.append({"action": "rft_round_completed", "round": rr["round"],
                   "eval_run_id": eval_run_id,
                   "n_accepted": len(accepted),
                   "cluster_entropy_round": round_["cluster_entropy"],
@@ -421,8 +470,23 @@ def stage_diversity(config: dict, chain: AuditChain, eval_run_id: str,
 
 
 def main() -> int:
-    stage = sys.argv[1] if len(sys.argv) > 1 else "all"
+    args = sys.argv[1:]
+    round_n = 1
+    if "--round" in args:
+        i = args.index("--round")
+        round_n = int(args[i + 1])
+        del args[i:i + 2]
+    stage = args[0] if args else "all"
     base, _, only = stage.partition(":")
+    rr = resolve_round(round_n)
+    if rr["round"] != 1 and base in ("h3", "h4"):
+        # h3/h4 belong to the frozen FASE 5 protocol (prereg v2); the
+        # re-execution round covers the RFT loop only, as declared in
+        # its own prereg.
+        raise SystemExit(
+            "h3/h4 quedaron congelados en la FASE 5; la ronda 2 cubre "
+            "candidates/filter/eval/diversity (prereg "
+            "20261023_rft_ronda2)")
     config = yaml.safe_load((ROOT / "config.yaml").read_text(
         encoding="utf-8"))
     chain = _chain()
@@ -431,19 +495,21 @@ def main() -> int:
     hook = AtlasHook(config, ROOT)
     try:
         hook.verify_identity(config)
-        if base == "h3" or (base == "all" and not only):
+        if base == "h3" or (base == "all" and not only
+                            and rr["round"] == 1):
             stage_h3(hook, config, tasks, chain,
                      only=only or None)
-        if base == "h4" or (base == "all" and not only):
+        if base == "h4" or (base == "all" and not only
+                            and rr["round"] == 1):
             stage_h4(hook, config, tasks, chain,
                      only=only or None)
         if base in ("candidates", "all"):
-            stage_candidates(hook, config, chain)
+            stage_candidates(hook, config, chain, rr)
         if base in ("filter", "all"):
-            stage_filter(hook, config, chain)
+            stage_filter(hook, config, chain, rr)
         if base in ("eval", "all"):
-            run_id = stage_eval(hook, config, tasks, chain)
-            stage_diversity(config, chain, run_id)
+            run_id = stage_eval(hook, config, tasks, chain, rr)
+            stage_diversity(config, chain, run_id, rr)
     finally:
         hook.close()
     return 0

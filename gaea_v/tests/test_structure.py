@@ -112,7 +112,10 @@ def test_identity_anchors_frozen():
     assert ids["heph_binary_sha256"].startswith("23981267")
     assert ids["weights_sha256"].startswith("499e8c53")
     assert ids["holdout_digest"].startswith("62d8992a3add")
-    assert ids["atlas_git_head"] == "4427672"
+    # Puntero de head actualizado por enmienda encadenada (ronda 2 de
+    # protocolo, v1.2.0): 4427672 (línea histórica muerta) -> 4582400.
+    # Las identidades S-01 (heph/pesos/holdout) permanecen intactas.
+    assert ids["atlas_git_head"] == "4582400"
     assert ids["prompt_maestro_sha256"].startswith("ae409daf")
     assert cfg["flops_formula"] == "flops_v1"
     assert cfg["manifest_schema_version"] == 1

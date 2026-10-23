@@ -1,0 +1,82 @@
+{
+ "round": "FASE 6.b r2 — re-medición G1-G4 (ronda de protocolo, v1.2.0)",
+ "round_number": 2,
+ "created_utc": "2026-10-23T02:52:19+00:00",
+ "defs_id": "lineage_defs_20261023",
+ "metrics": {
+  "fail_rate": 0.5,
+  "unrecovered_rate": 0.5,
+  "diversity_ratio": 1.532069,
+  "generations_since_growth": 0,
+  "params_current": 13693824,
+  "audit_ok": true
+ },
+ "sources": {
+  "fail_rate": "artifacts/runs/bench_atlas/manifest.json",
+  "diversity_ratio": {
+   "baseline_entropy": 0.6486,
+   "round_entropy": 0.9937,
+   "trace_counts": {
+    "nano_solo": {
+     "n_total": 100,
+     "n_nonempty": 100
+    },
+    "atlas": {
+     "n_total": 100,
+     "n_nonempty": 74
+    }
+   }
+  },
+  "params_current": "hephaestus/artifacts/tensors.tsv",
+  "generations_since_growth": "registro genealógico de ATLAS inexistente (0 registros)",
+  "audit_ok": {
+   "gaea_v": true,
+   "atlas": true
+  }
+ },
+ "decision": {
+  "expand": false,
+  "causes": [
+   "G3: pacing (too soon since last growth)"
+  ],
+  "checks": {
+   "G1_saturation": {
+    "fail_rate": 0.5,
+    "min_fail_rate": 0.15,
+    "unrecovered_rate": 0.5,
+    "min_unrecovered_rate": 0.05,
+    "pass": true
+   },
+   "G2_integrity": {
+    "diversity": 1.532069,
+    "floor": 0.8,
+    "audit_ok": true,
+    "pass": true
+   },
+   "G3_pacing": {
+    "since": 0,
+    "min": 3,
+    "pass": false
+   },
+   "G4_ceiling": {
+    "params": 13693824,
+    "ceiling": 7000000000.0,
+    "pass": true
+   }
+  }
+ },
+ "rules_from": "atlas/config.yaml lineage.growth",
+ "configured_ops": {
+  "merge": {
+   "method": "ties",
+   "density": 0.7
+  },
+  "expand": {
+   "method": "block_stacking",
+   "init": "identity"
+  }
+ },
+ "execution": "no_growth_justified (gate refusal is the valid result)",
+ "measured_utc_run": "bench_atlas",
+ "gaea_v_head": "4582400"
+}

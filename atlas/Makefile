@@ -32,10 +32,10 @@ mcp-serve:
 	$(PY) scripts/mcp_server.py --config config.yaml
 
 rft:
-	$(PY) scripts/rft_round.py $(STAGE)
+	$(PY) scripts/rft_round.py $(STAGE) --round $(ROUND)
 
 lineage:
-	$(PY) scripts/lineage_round.py $(STAGE)
+	$(PY) scripts/lineage_round.py $(STAGE) --round $(ROUND)
 
 bench:
 	$(PY) scripts/bench.py --config config.yaml --profile $(PROFILE)

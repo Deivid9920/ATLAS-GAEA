@@ -1,0 +1,19 @@
+{
+ "baseline": {
+  "n_traces": 50,
+  "n_clusters": 10,
+  "cluster_entropy": 1.0,
+  "pairwise_diversity": 1.0,
+  "largest_cluster_frac": 0.1
+ },
+ "round": {
+  "n_traces": 160,
+  "n_clusters": 160,
+  "cluster_entropy": 1.0,
+  "pairwise_diversity": 1.0,
+  "largest_cluster_frac": 0.0063
+ },
+ "entropy_drop": 0.0,
+ "trace_source": "first_16_candidates_per_family (0 accepted)",
+ "ns_rule": "drop > 0.20 blocks promotion"
+}

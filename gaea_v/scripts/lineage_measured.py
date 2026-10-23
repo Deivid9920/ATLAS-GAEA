@@ -31,8 +31,37 @@ from gv.canon import canonical, sha256_canonical  # noqa: E402
 from gv.lin.matching import params_from_tensors  # noqa: E402
 from gv.lin.trace_diversity import trace_diversity  # noqa: E402
 
-DEFS_ID = "lineage_defs_20261021"
-ART = ROOT / "artifacts" / "lineage_g1g4_round.json"
+REGISTERED_ROUNDS_LIN = (1, 2)
+
+
+def resolve_round(n: int) -> dict:
+    """Round registry (linaje), declared BEFORE any metric is computed.
+
+    1 = FASE 6.b frozen in v1.0 (defs lineage_defs_20261021). 2 =
+    protocol re-measurement round (v1.2.0): defs re-registered and
+    chained BEFORE recalculating any metric, over the frozen FASE 7
+    bench runs (declared in planned_data_runs). Unregistered rounds
+    refuse with cause."""
+    if n not in REGISTERED_ROUNDS_LIN:
+        raise SystemExit(
+            f"ronda no registrada: {n}; registradas: "
+            f"{list(REGISTERED_ROUNDS_LIN)}")
+    if n == 1:
+        return {"round": 1, "defs_id": "lineage_defs_20261021",
+                "artifact":
+                    ROOT / "artifacts" / "lineage_g1g4_round.json",
+                "label": "FASE 6.b — ronda de linaje bajo G1-G4",
+                "note": ""}
+    return {"round": 2, "defs_id": "lineage_defs_20261023",
+            "artifact":
+                ROOT / "artifacts" / "lineage_g1g4_round2.json",
+            "label": "FASE 6.b r2 — re-medición G1-G4 (ronda de "
+                     "protocolo, v1.2.0)",
+            "note": "re-ejecución de protocolo: defs re-registradas "
+                    "antes de recalcular cualquier métrica; los datos "
+                    "son los runs congelados de FASE 7 "
+                    "(bench_atlas/bench_nano_solo), declarados en "
+                    "planned_data_runs"}
 
 
 def _git_head() -> str:
@@ -52,14 +81,14 @@ def _chain() -> AuditChain:
 
 # -- stage defs -------------------------------------------------------------
 
-def stage_defs(config: dict, chain: AuditChain) -> None:
-    out = ROOT / "artifacts" / "prereg" / f"{DEFS_ID}.json"
+def stage_defs(config: dict, chain: AuditChain, rr: dict) -> None:
+    out = ROOT / "artifacts" / "prereg" / f"{rr['defs_id']}.json"
     if out.is_file():
         print(json.dumps({"stage": "defs", "skipped": "exists"}))
         return
     defs = {
-        "defs_id": DEFS_ID,
-        "round": "FASE 6.b — ronda de linaje bajo G1-G4",
+        "defs_id": rr["defs_id"],
+        "round": rr["label"],
         "decision_function": "atlas_ns.lineage.rules.decide_expansion "
                              "ejecutada verbatim vía worker (solo "
                              "lectura); umbrales de atlas/config.yaml "
@@ -99,11 +128,14 @@ def stage_defs(config: dict, chain: AuditChain) -> None:
                           "hermanos",
         "created_utc_excluded_from_hash": True,
     }
+    if rr["note"]:
+        defs["note"] = rr["note"]
     digest = sha256_canonical(defs)
     out.write_text(canonical(dict(defs, artifact_sha256=digest)) + "\n",
                    encoding="utf-8")
     chain.append({"action": "lineage_operational_definitions_registered",
-                  "defs_id": DEFS_ID, "artifact_sha256": digest,
+                  "defs_id": rr["defs_id"], "artifact_sha256": digest,
+                  "round": rr["round"],
                   "registered": "antes de calcular cualquier métrica "
                                 "de linaje"})
     chain.save(ROOT / "logs" / "audit.jsonl")
@@ -133,8 +165,10 @@ def _answers(run_id: str) -> list[str]:
     return [r["solver_answer"] for r in rows]
 
 
-def stage_measure(hook: AtlasHook, config: dict, chain: AuditChain) -> None:
-    if ART.is_file():
+def stage_measure(hook: AtlasHook, config: dict, chain: AuditChain,
+                  rr: dict) -> None:
+    art: Path = rr["artifact"]
+    if art.is_file():
         print(json.dumps({"stage": "measure", "skipped": "exists"}))
         return
     m_atlas_path = ROOT / "artifacts" / "runs" / "bench_atlas" / \
@@ -183,16 +217,18 @@ def stage_measure(hook: AtlasHook, config: dict, chain: AuditChain) -> None:
         "audit_ok": {"gaea_v": ok_self, "atlas": atlas_ok},
     }
     chain.append({"action": "lineage_metrics_measured",
-                  "metrics": metrics, "sources": sources})
+                  "round": rr["round"], "metrics": metrics,
+                  "sources": sources})
 
     resp = hook.lineage_decide(metrics)
     decision = {"expand": resp["expand"], "causes": resp["causes"],
                 "checks": resp["checks"]}
     artifact = {
-        "round": "FASE 6.b",
+        "round": rr["label"],
+        "round_number": rr["round"],
         "created_utc": datetime.now(timezone.utc).isoformat(
             timespec="seconds"),
-        "defs_id": DEFS_ID,
+        "defs_id": rr["defs_id"],
         "metrics": metrics, "sources": sources,
         "decision": decision,
         "rules_from": resp["rules_from"],
@@ -206,9 +242,10 @@ def stage_measure(hook: AtlasHook, config: dict, chain: AuditChain) -> None:
         "measured_utc_run": m_atlas["run_id"],
         "gaea_v_head": _git_head(),
     }
-    ART.write_text(json.dumps(artifact, ensure_ascii=False, indent=1)
+    art.write_text(json.dumps(artifact, ensure_ascii=False, indent=1)
                    + "\n", encoding="utf-8")
     chain.append({"action": "lineage_decision_registered",
+                  "round": rr["round"],
                   "expand": decision["expand"],
                   "causes": decision["causes"],
                   "checks": {k: v["pass"] for k, v in
@@ -220,17 +257,24 @@ def stage_measure(hook: AtlasHook, config: dict, chain: AuditChain) -> None:
 
 
 def main() -> int:
-    stage = sys.argv[1] if len(sys.argv) > 1 else "all"
+    args = sys.argv[1:]
+    round_n = 1
+    if "--round" in args:
+        i = args.index("--round")
+        round_n = int(args[i + 1])
+        del args[i:i + 2]
+    stage = args[0] if args else "all"
+    rr = resolve_round(round_n)
     config = yaml.safe_load((ROOT / "config.yaml").read_text(
         encoding="utf-8"))
     chain = _chain()
     if stage in ("defs", "all"):
-        stage_defs(config, chain)
+        stage_defs(config, chain, rr)
     if stage in ("measure", "all"):
         hook = AtlasHook(config, ROOT)
         try:
             hook.verify_identity(config)
-            stage_measure(hook, config, chain)
+            stage_measure(hook, config, chain, rr)
         finally:
             hook.close()
     return 0

@@ -8,8 +8,8 @@ Regla de este repositorio: cada número que aparece en cualquier README está re
 
 | Directorio | Qué es | Estado al cierre |
 |---|---|---|
-| `atlas/` | Agente especialista CPU-only: verificador compuesto (programático + simbólico + probe), presupuesto anytime-compute, cadena de auditoría tamper-evident por acción, protocolo de linaje que solo crece cuando el verificador lo justifica | FASES 0-7 completas · commit `df4eb6f` · tag `v1.0` · suite 199/199 (182 ancla + 5 higiene v1.0.2 + 12 lote 2 v1.1.0) · `audit-verify` ok |
-| `gaea_v/` | GAEA-VERIFICADOR: capa de medición certificable (preregistro antes de datos, corrección de Holm, bootstrap pareado, CPU-segundo con `getrusage`, zoo de ataques anti-hacking congelado) | FASES -1 a 7 con gates verdes · commit `a52277d` · suite 109/109 (108 ancla + 1 higiene v1.0.2) · Anexo E 8/8 PASS |
+| `atlas/` | Agente especialista CPU-only: verificador compuesto (programático + simbólico + probe), presupuesto anytime-compute, cadena de auditoría tamper-evident por acción, protocolo de linaje que solo crece cuando el verificador lo justifica | FASES 0-7 completas · commit `df4eb6f` · tag `v1.0` · suite 204/204 (182 ancla + 5 higiene v1.0.2 + 12 lote 2 v1.1.0 + 5 lote 3 v1.2.0) · `audit-verify` ok |
+| `gaea_v/` | GAEA-VERIFICADOR: capa de medición certificable (preregistro antes de datos, corrección de Holm, bootstrap pareado, CPU-segundo con `getrusage`, zoo de ataques anti-hacking congelado) | FASES -1 a 7 con gates verdes · commit `a52277d` · suite 117/117 (108 ancla + 1 higiene v1.0.2 + 8 lote 3 v1.2.0) · Anexo E 8/8 PASS |
 | `hephaestus/` | Artefactos de inferencia SIMD C++ congelados por huella sha256 (binario + pesos champion + tokenizer). El código fuente de HEPHAESTUS vive en su propio repositorio | binario `23981267…` · pesos champion `499e8c53…` |
 | `prometheus-ns/` | Repositorio base del linaje; aporta `data_clean/holdout` congelado (el archivo se llama por su propio sha256) | holdout `127ef76be336…` verificado |
 | `entregas/` | Evidencia de entrega: zips congelados con sus SHA256SUMS, anexo de cierre de FASE 7, informe verificable | zip ATLAS `f17b98dc…` byte-exacto |
@@ -68,11 +68,11 @@ git clone <este-repo> atlas-gaea && cd atlas-gaea
 # ATLAS (los hermanos ../hephaestus y ../gaea_v ya están en su sitio por diseño)
 cd atlas
 make setup && make bridge-check && make demo   # puente 5/5 + demo
-make test                                       # 199/199
+make test                                       # 204/204
 
 # GAEA-VERIFICADOR
 cd ../gaea_v
-make setup && make test                         # 109/109
+make setup && make test                         # 117/117
 make audit-verify                               # cadena íntegra, first_bad_seq null
 ```
 
@@ -92,7 +92,7 @@ Nota documentada: `make test` de ATLAS añade un registro a `atlas/logs/probe_re
 |---|---|---|
 | Columna `cloud_reference` | null por no-go vinculante de nube; activar exige aprobación explícita del operador | `atlas/config.yaml` (`bench.cloud_reference`), `atlas/docs/no_goals.md` |
 | `atlas_int8` | not_measurable: el generador de este build es fp32-only (BridgeError registrada) | `gaea_v/artifacts/fase6_h4_int8.json` |
-| Probe CASSANDRA en vivo | calibrado y desactivado por decisión encadenada; scoring en vivo requiere el runtime CASSANDRA | `atlas/logs/probe_recalibration.jsonl` |
+| Probe CASSANDRA en vivo | Runtime PROBADO en v1.2.0 (42/42 tests, scoring en vivo 5/6 fuera de dominio, bridge `available: true`, recalibrate encola con hash `499e8c53…`); la adición al monorepo queda propuesta como Lote 4 con hallazgos documentados (idempotencia del extract, tau* no publicado en ensemble_table) | `entregas/RELEASE_NOTES_v1.2.0.md` (sección veredicto), `atlas/atlas_ns/verify/plugins/probe.py` |
 | Enmienda de higiene de test (#10) | APLICADA en v1.0.2 (fila #13 de ANCHOR_CHANGES) — registro histórico del preregistro | `entregas/PENDIENTES_POST_RELEASE.md` |
 | CLIs `make rft` / `make lineage` de ATLAS | RESUELTO en v1.1.0 (ANCHOR_CHANGES #16): wrappers reales que invocan el harness gaea_v (`run_fase5.py` / `lineage_measured.py`) con prereg obligatorio y fail-loud con causa; la re-ejecución produce artefactos NUEVOS y anexa a la cadena de gaea_v | `atlas/scripts/rft_round.py`, `atlas/scripts/lineage_round.py` |
 | Activación de `isolation: netns` por despliegue | CAPACIDAD implementada en v1.1.0 (ANCHOR_CHANGES #14): `unshare --net` fail-closed con `no_network_enforced` real; el default de repo sigue siendo `none` (rlimits sin bloqueo de red, reportado honesto) porque hosts sin user namespaces fallarían cerrado — activar `netns` en WSL2/Linux con userns | `atlas/atlas_ns/verify/plugins/programmatic.py`, `atlas/config.yaml` (safety.sandbox.isolation) |

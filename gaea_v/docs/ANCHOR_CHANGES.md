@@ -89,3 +89,37 @@ futuras, que lo heredan sin cambio de preregistro (no altera ningún
 umbral, regla de decisión ni familia de Holm).
 Autorización del operador: instrucción "Vamos a proceder con el
 lote 1" (chat, 2026-10-22).
+
+## 2026-10-23 — puntero `identities.atlas_git_head`: 4427672 → 4582400
+
+Naturaleza: actualización de puntero de head del hermano ATLAS para la
+re-medición de la ronda 2, no de umbral inferencial (precedente: la
+enmienda 2026-10-20 ecb494b → 4427672). Causa: 4427672 pertenece a la
+línea histórica previa al re-empaquetado del monorepo (ver
+`gaea_v/docs/COMPATIBILIDAD_COMMITS.md`) y ya no existe en este repo;
+`AtlasHook.verify_identity` hace fail-loud con cualquier commit
+posterior, así que la ronda 2 exige el puntero vivo. Re-hash de config
+encadenado ANTES de datos (evento `config_sha256_chained`,
+`a2217fdfec256d50…`); `test_identity_anchors_frozen` enmendado (tests =
+especificación). Las identidades S-01 (heph `23981267…`, pesos
+`499e8c53…`, holdout `127ef76b…`, prompt maestro `ae409daf…`) quedan
+INTACTAS. Divulgación: commits posteriores a v1.2.0 volverán a hacer
+fail-loud el drift — es el diseño (la cadena queda ligada al head de
+medición).
+Autorización del operador: "Continua con este lote" (chat, 2026-10-23).
+
+## 2026-10-23 — ronda 2 de protocolo registrada ANTES de datos
+
+Naturaleza: registro de ronda nueva + parámetro `--round` en los
+harness; no hay hipótesis de promoción. El prereg
+`prereg_20261023_rft_ronda2` (hash canónico encadenado
+`5b40149410f94063…`, vía `emit_prereg`, evento `prereg_registered`) se
+emitió ANTES de que existiera cualquier artefacto de la ronda. Familia
+no inferencial R1/R2/R3 (replicación determinista, replicación del
+filtro, replicación de diversidad; `pilot_usage: none`). El registro
+de rondas es CERRADO (`resolve_round`: 1 congelada byte-compatible, 2
+de protocolo); h3/h4 quedan congelados en la FASE 5 y la ronda 2 los
+rechaza con causa. Linaje: defs nuevas `lineage_defs_20261023`
+encadenadas ANTES de recalcular métricas, sobre los runs congelados de
+FASE 7 declarados en `planned_data_runs`.
+Autorización del operador: "Continua con este lote" (chat, 2026-10-23).
