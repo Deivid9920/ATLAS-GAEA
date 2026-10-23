@@ -34,3 +34,11 @@ independiente" en `ATLAS_fase7_cierre_anexo.md` (este directorio).
   → nueva huella de binario → nuevo registro S-01). Fuera del alcance del release v1.0.
 - Probe CASSANDRA en vivo: requiere cablear el runtime CASSANDRA y recalibración con
   prereg nuevo antes de datos.
+
+## Lote 2 (v1.1.0) — ejecutado 2026-10-23
+
+- Sandbox con aislamiento REAL fail-closed (`isolation: netns` vía `unshare --net`,
+  `no_network_enforced` real) y default honesto `none` — ANCHOR_CHANGES #14.
+- Piping del perfil al evento `verifier_decision` de la cadena — #15.
+- CLIs `rft`/`lineage` reales con prereg obligatorio — #16.
+- Suites: 199/199 (ATLAS) + 109/109 (GAEA). Identidades S-01 intactas.

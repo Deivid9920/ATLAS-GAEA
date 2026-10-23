@@ -1,7 +1,14 @@
-"""FASE 2: programmatic plugin — regex, JSON-schema, sandboxed tests."""
+"""FASE 2: programmatic plugin — regex, JSON-schema, sandboxed tests.
+Lote 2 (v1.1.0): el sandbox reporta el aislamiento REAL (no solo el
+pedido) y puede exigir netns fail-closed. Tests = especificación.
+"""
+import sys
+
 import pytest
 
-from atlas_ns.verify.plugins.programmatic import ProgrammaticVerifier
+import atlas_ns.verify.plugins.programmatic as prog_mod
+from atlas_ns.verify.plugins.programmatic import (
+    IsolationUnavailableError, ProgrammaticVerifier)
 
 GOOD_CODE = """
 def merge(a, b):
@@ -68,14 +75,60 @@ def test_sandbox_timeout_is_bounded(verifier):
     assert res["passed"] is False and res["exit_code"] == -9
 
 
-def test_sandbox_reports_isolation_profile(verifier):
-    # v1.0.2 (ANCHOR_CHANGES #11): the sandbox reports what was actually
-    # enforced. no_network_requested mirrors the config REQUEST — it is
-    # NOT a verified property; the honest name replaces the old one.
+def test_sandbox_reports_enforcement_honestly(verifier):
+    # v1.1.0 (ANCHOR_CHANGES #14): el resultado dice qué se PIDIÓ y qué se
+    # CUMPLIÓ. Con isolation "none" (default) la red NO queda bloqueada a
+    # nivel OS y el campo lo dice sin maquillaje.
     res = verifier.run_in_sandbox("x = 1", "assert x == 1")
     assert res["isolation_profile"] == "subprocess+rlimits"
-    assert res["no_network_requested"] is True  # config default
-    assert "no_network_enforced" not in res
+    assert res["no_network_requested"] is True   # config default
+    assert res["no_network_enforced"] is False   # realidad, no deseo
+
+
+def test_netns_requested_without_capability_fails_closed(monkeypatch):
+    # fail-closed: si se pide netns y el host no puede crearlo, el verificador
+    # SE NIEGA a lanzar el hijo — nunca corre con red "por si acaso".
+    monkeypatch.setattr(prog_mod, "_netns_available", lambda: False)
+    v = ProgrammaticVerifier({"safety": {"sandbox": {
+        "no_network": True, "isolation": "netns"}}})
+    with pytest.raises(IsolationUnavailableError) as ei:
+        v.run_in_sandbox("x = 1", "assert x == 1")
+    assert "unshare" in str(ei.value) and "netns" in str(ei.value)
+
+
+def test_netns_available_wraps_child_with_unshare(monkeypatch):
+    # con capacidad real, el hijo se lanza bajo `unshare --net` y el resultado
+    # declara enforcement verificado.
+    calls = {}
+
+    class _FakeProc:
+        returncode, stdout, stderr = 0, "SANDBOX_PASS", ""
+
+    def fake_run(cmd, **kwargs):
+        calls["cmd"] = cmd
+        return _FakeProc()
+
+    monkeypatch.setattr(prog_mod, "_netns_available", lambda: True)
+    monkeypatch.setattr(prog_mod.subprocess, "run", fake_run)
+    v = ProgrammaticVerifier({"safety": {"sandbox": {
+        "no_network": True, "isolation": "netns"}}})
+    res = v.run_in_sandbox("x = 1", "assert x == 1")
+    assert calls["cmd"][0].endswith("unshare")
+    assert calls["cmd"][1] == "--net"
+    assert calls["cmd"][2].endswith("python" + ("3" if sys.version_info[0] == 3 else "")) or sys.executable in calls["cmd"][2]
+    assert res["no_network_enforced"] is True
+    assert res["isolation_profile"] == "subprocess+rlimits+netns"
+
+
+def test_last_sandbox_recorded_for_audit_piping():
+    # el runner (ANCHOR_CHANGES #15) lee last_sandbox para el evento de
+    # auditoría; el verificador lo deja actualizado tras cada corrida.
+    # (instancia fresca: la fixture del módulo ya corrió sandboxes antes)
+    fresh = ProgrammaticVerifier()
+    assert fresh.last_sandbox is None
+    fresh.run_in_sandbox("x = 1", "assert x == 1")
+    assert fresh.last_sandbox is not None
+    assert fresh.last_sandbox["isolation_profile"] == "subprocess+rlimits"
 
 
 def test_no_evidence_is_zero_not_fake(verifier):

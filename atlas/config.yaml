@@ -45,7 +45,11 @@ safety:
     hephaestus: execute
     filesystem: write
     network_crawl: readonly
-  sandbox: {timeout_s: 20, mem_mb: 512, no_network: true}
+  sandbox: {timeout_s: 20, mem_mb: 512, no_network: true, isolation: "none"}
+  # isolation "netns" exige unshare --net funcional (WSL2/Linux con userns);
+  # si el host no puede crear el namespace, el verificador falla CERRADO
+  # (IsolationUnavailableError) antes de lanzar el hijo. "none" = rlimits
+  # sin bloqueo real de red, reportado honestamente como no_network_enforced=false.
 
 rft:
   n_candidates: 16

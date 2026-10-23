@@ -56,6 +56,9 @@ class TaskRunner:
                 claim, context)
         else:
             self.verify_fn = verifier
+        # Lote 2 (#15): referencia al objeto verificador para leer su perfil
+        # de aislamiento real (last_sandbox del plugin programático).
+        self.verifier_obj = verifier
         self.memory = memory or EpisodicMemory(config)
         self.chain = chain or AuditChain()
         orch = config.get("orchestrator", {})
@@ -77,6 +80,25 @@ class TaskRunner:
         rec = json.loads(self._record_path(task_id)
                          .read_text(encoding="utf-8"))
         return Task.from_record(rec)
+
+    # -- audit isolation piping (#15) ------------------------------------------
+    def _sandbox_isolation(self) -> dict | None:
+        """Perfil de aislamiento REAL del último sandbox del plugin
+        programático. None si no hay dato — el campo NUNCA se inventa."""
+        src = self.verifier_obj
+        if src is None:
+            return None
+        ls = getattr(src, "last_sandbox", None)
+        if ls is None and hasattr(src, "_plugins"):
+            for p in src._plugins:
+                if getattr(p, "name", "") == "programmatic":
+                    ls = getattr(p, "last_sandbox", None)
+                    break
+        if not isinstance(ls, dict):
+            return None
+        return {"isolation_profile": ls.get("isolation_profile"),
+                "no_network_requested": ls.get("no_network_requested"),
+                "no_network_enforced": ls.get("no_network_enforced")}
 
     # -- tool dispatch --------------------------------------------------------
     def _dispatch(self, task: Task, action: Action) -> str:
@@ -100,11 +122,15 @@ class TaskRunner:
         if tool == "verify":
             decision = self.verify_fn(args.get("previous", "") or task.result,
                                       args.get("context"))
-            self.chain.append({
+            event = {
                 "action": "verifier_decision", "task": task.task_id,
                 "inputs_hash": _inputs_hash(args.get("previous", "")),
                 "verdict": decision.decision,
-                "causes": list(decision.causes)[:4]})
+                "causes": list(decision.causes)[:4]}
+            iso = self._sandbox_isolation()
+            if iso is not None:
+                event["sandbox_isolation"] = iso
+            self.chain.append(event)
             # stash the decision for _advance; the machine is ACTING so
             # the event NOW must be a plain tool_result
             self._pending_decision = decision
@@ -200,11 +226,15 @@ class TaskRunner:
         self._pending_decision = None
         if decision is None:
             decision = self.verify_fn(task.result or "", None)
-        self.chain.append({
+        event = {
             "action": "verifier_decision", "task": task.task_id,
             "inputs_hash": _inputs_hash(task.result or ""),
             "verdict": decision.decision,
-            "causes": list(decision.causes)[:4]})
+            "causes": list(decision.causes)[:4]}
+        iso = self._sandbox_isolation()
+        if iso is not None:
+            event["sandbox_isolation"] = iso
+        self.chain.append(event)
         return {"kind": "decision", "decision": decision.decision,
                 "reason": "; ".join(decision.causes[:2])}
 

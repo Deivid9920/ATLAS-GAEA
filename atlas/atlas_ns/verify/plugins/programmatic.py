@@ -7,14 +7,22 @@ Context contract (all optional):
   code     : str                 candidate code to run
   tests    : str                 python asserts that must exit 0
 
-Sandbox (#12): disposable temp dir, scrubbed environment, wall-clock
-timeout and RLIMIT_AS/RLIMIT_CPU from config.safety.sandbox. No OS
-netns in this build: the child runs as the SAME user and CAN reach
-the network. `no_network_requested` mirrors the configuration REQUEST
-— it is NOT a verified property of the sandbox. The result dict
-reports `isolation_profile: subprocess+rlimits` so callers can record
-what was actually enforced; piping that into the per-action audit
-event is declared PENDING (README raíz, Pendientes declarados).
+Sandbox (#12 + Lote 2 v1.1.0, ANCHOR_CHANGES #14): disposable temp dir,
+scrubbed environment, wall-clock timeout and RLIMIT_AS/RLIMIT_CPU from
+config.safety.sandbox. El resultado reporta el perfil de aislamiento
+REAL, no el deseado:
+  isolation "none" (default) -> "subprocess+rlimits": el hijo corre como
+      el MISMO usuario y PUEDE alcanzar la red; no_network_enforced=False.
+  isolation "netns"          -> el hijo corre bajo `unshare --net`: sin
+      red a nivel OS; no_network_enforced=True. Fail-CLOSED: si el host
+      no puede crear el namespace, el verificador levanta
+      IsolationUnavailableError ANTES de lanzar el hijo — jamás corre
+      con red "por si acaso". Requiere WSL2/Linux con user namespaces.
+El runner conecta {isolation_profile, no_network_requested,
+no_network_enforced} al evento verifier_decision de la cadena
+(ANCHOR_CHANGES #15): la auditoría dice siempre qué se enforzó de
+verdad. `last_sandbox` guarda el perfil del ÚLTIMO sandbox ejecutado
+por esta instancia del plugin (no por decisión).
 Honesty rules: fail-loud, never fake a security property we do not
 have. POSIX-only (resource/preexec_fn): on Windows this module fails
 at import with guidance, never silently.
@@ -49,6 +57,41 @@ class SandboxLimits:
         self.timeout_s = float(cfg.get("timeout_s", 20))
         self.mem_mb = int(cfg.get("mem_mb", 512))
         self.no_network = bool(cfg.get("no_network", True))
+        self.isolation = str(cfg.get("isolation", "none"))
+        if self.isolation not in ("none", "netns"):
+            raise ValueError(
+                f"safety.sandbox.isolation inválido: {self.isolation!r} "
+                "(valores: 'none' | 'netns')")
+
+
+class IsolationUnavailableError(RuntimeError):
+    """no_network+netns pedidos y el host no puede garantizarlos.
+    Fail-closed: no se lanza el hijo."""
+
+
+_netns_cache: bool | None = None
+
+
+def _unshare_bin() -> str:
+    import shutil
+
+    return shutil.which("unshare") or "unshare"
+
+
+def _netns_available() -> bool:
+    """Probe real (una vez por proceso): `unshare --net true` debe
+    terminar con exit 0. Sin root ni userns, devuelve False y el modo
+    netns queda fail-closed."""
+    global _netns_cache
+    if _netns_cache is None:
+        try:
+            proc = subprocess.run(
+                [_unshare_bin(), "--net", "true"],
+                capture_output=True, timeout=10, check=False)
+            _netns_cache = proc.returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            _netns_cache = False
+    return _netns_cache
 
 
 class ProgrammaticVerifier:
@@ -56,15 +99,29 @@ class ProgrammaticVerifier:
 
     def __init__(self, config: dict | None = None) -> None:
         self.limits = SandboxLimits(config)
+        self.last_sandbox: dict | None = None
 
     # -- sandbox ------------------------------------------------------------
     def run_in_sandbox(self, code: str, tests: str) -> dict:
         """Execute `tests` against `code` in a disposable subprocess.
 
-        Returns {ran, passed, exit_code, stderr_tail, ms}. The candidate
-        NEVER runs with ATLAS's environment or privileges.
+        Returns {ran, passed, exit_code, stderr_tail, ms,
+        no_network_requested, no_network_enforced, isolation_profile}.
+        The candidate NEVER runs with ATLAS's environment or privileges.
+        Fail-closed con netns: sin capacidad real se levanta
+        IsolationUnavailableError antes de crear nada.
         """
         import time as _time
+
+        want_netns = (self.limits.no_network
+                      and self.limits.isolation == "netns")
+        if want_netns and not _netns_available():
+            raise IsolationUnavailableError(
+                "no_network + isolation='netns' pedidos, pero este host no "
+                "puede crear un network namespace (unshare --net falló o no "
+                "está disponible). Ejecuta bajo WSL2/Linux con user "
+                "namespaces, o declara isolation: 'none' si aceptas "
+                "subprocess+rlimits SIN bloqueo real de red.")
 
         with tempfile.TemporaryDirectory(prefix="atlas_sbx_") as tmp:
             tmp_path = Path(tmp)
@@ -81,10 +138,19 @@ class ProgrammaticVerifier:
                 resource.setrlimit(resource.RLIMIT_CPU,
                                    (int(self.limits.timeout_s),) * 2)
 
+            if want_netns:
+                cmd = [_unshare_bin(), "--net", sys.executable, str(entry)]
+                profile = "subprocess+rlimits+netns"
+                enforced = True
+            else:
+                cmd = [sys.executable, str(entry)]
+                profile = "subprocess+rlimits"
+                enforced = False
+
             t0 = _time.monotonic()
             try:
                 proc = subprocess.run(
-                    [sys.executable, str(entry)],
+                    cmd,
                     capture_output=True, text=True,
                     timeout=self.limits.timeout_s, cwd=tmp,
                     env={"PATH": "/usr/bin:/bin", "HOME": tmp,
@@ -95,11 +161,14 @@ class ProgrammaticVerifier:
                     proc.returncode == 0 and "SANDBOX_PASS" in proc.stdout)
             except subprocess.TimeoutExpired:
                 exit_code, stderr, passed = -9, "timeout", False
-            return {"ran": True, "passed": passed, "exit_code": exit_code,
-                    "stderr_tail": stderr,
-                    "ms": round((_time.monotonic() - t0) * 1000, 1),
-                    "no_network_requested": self.limits.no_network,
-                    "isolation_profile": "subprocess+rlimits"}
+            result = {"ran": True, "passed": passed, "exit_code": exit_code,
+                      "stderr_tail": stderr,
+                      "ms": round((_time.monotonic() - t0) * 1000, 1),
+                      "no_network_requested": self.limits.no_network,
+                      "no_network_enforced": enforced,
+                      "isolation_profile": profile}
+            self.last_sandbox = result
+            return result
 
     # -- verify ---------------------------------------------------------------
     def verify(self, claim: str, context: dict | None = None) -> Verdict:

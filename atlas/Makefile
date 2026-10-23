@@ -8,6 +8,7 @@ PROFILE ?= code_qa
 BUDGET ?= standard
 ROUND ?= 1
 MODE ?= dup_flood
+STAGE ?= all
 
 .PHONY: setup bridge-check chat run-task mcp-serve rft lineage bench audit-verify demo test lint clean
 
@@ -31,16 +32,10 @@ mcp-serve:
 	$(PY) scripts/mcp_server.py --config config.yaml
 
 rft:
-	@echo "PENDIENTE declarado (v1.0.2): scripts/rft_round.py es un esqueleto fail-loud."
-	@echo "FASE 5 se midio via harness gaea_v: ../gaea_v/scripts/run_fase5.py (prereg_20261020_rft_rondas_v2)."
-	@echo "Ver README raiz (Pendientes declarados) y docs/ANEXO_CIERRE_fase7_atlas.md."
-	@exit 2
+	$(PY) scripts/rft_round.py $(STAGE)
 
 lineage:
-	@echo "PENDIENTE declarado (v1.0.2): scripts/lineage_round.py es un esqueleto fail-loud."
-	@echo "FASE 6 se midio via harness gaea_v: ../gaea_v/scripts/lineage_measured.py (lineage_defs_20261021)."
-	@echo "Ver README raiz (Pendientes declarados) y docs/ANEXO_CIERRE_fase7_atlas.md."
-	@exit 2
+	$(PY) scripts/lineage_round.py $(STAGE)
 
 bench:
 	$(PY) scripts/bench.py --config config.yaml --profile $(PROFILE)

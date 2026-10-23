@@ -8,7 +8,7 @@ Regla de este repositorio: cada número que aparece en cualquier README está re
 
 | Directorio | Qué es | Estado al cierre |
 |---|---|---|
-| `atlas/` | Agente especialista CPU-only: verificador compuesto (programático + simbólico + probe), presupuesto anytime-compute, cadena de auditoría tamper-evident por acción, protocolo de linaje que solo crece cuando el verificador lo justifica | FASES 0-7 completas · commit `df4eb6f` · tag `v1.0` · suite 187/187 (182 ancla + 5 higiene v1.0.2) · `audit-verify` ok |
+| `atlas/` | Agente especialista CPU-only: verificador compuesto (programático + simbólico + probe), presupuesto anytime-compute, cadena de auditoría tamper-evident por acción, protocolo de linaje que solo crece cuando el verificador lo justifica | FASES 0-7 completas · commit `df4eb6f` · tag `v1.0` · suite 199/199 (182 ancla + 5 higiene v1.0.2 + 12 lote 2 v1.1.0) · `audit-verify` ok |
 | `gaea_v/` | GAEA-VERIFICADOR: capa de medición certificable (preregistro antes de datos, corrección de Holm, bootstrap pareado, CPU-segundo con `getrusage`, zoo de ataques anti-hacking congelado) | FASES -1 a 7 con gates verdes · commit `a52277d` · suite 109/109 (108 ancla + 1 higiene v1.0.2) · Anexo E 8/8 PASS |
 | `hephaestus/` | Artefactos de inferencia SIMD C++ congelados por huella sha256 (binario + pesos champion + tokenizer). El código fuente de HEPHAESTUS vive en su propio repositorio | binario `23981267…` · pesos champion `499e8c53…` |
 | `prometheus-ns/` | Repositorio base del linaje; aporta `data_clean/holdout` congelado (el archivo se llama por su propio sha256) | holdout `127ef76be336…` verificado |
@@ -68,7 +68,7 @@ git clone <este-repo> atlas-gaea && cd atlas-gaea
 # ATLAS (los hermanos ../hephaestus y ../gaea_v ya están en su sitio por diseño)
 cd atlas
 make setup && make bridge-check && make demo   # puente 5/5 + demo
-make test                                       # 187/187
+make test                                       # 199/199
 
 # GAEA-VERIFICADOR
 cd ../gaea_v
@@ -93,9 +93,9 @@ Nota documentada: `make test` de ATLAS añade un registro a `atlas/logs/probe_re
 | Columna `cloud_reference` | null por no-go vinculante de nube; activar exige aprobación explícita del operador | `atlas/config.yaml` (`bench.cloud_reference`), `atlas/docs/no_goals.md` |
 | `atlas_int8` | not_measurable: el generador de este build es fp32-only (BridgeError registrada) | `gaea_v/artifacts/fase6_h4_int8.json` |
 | Probe CASSANDRA en vivo | calibrado y desactivado por decisión encadenada; scoring en vivo requiere el runtime CASSANDRA | `atlas/logs/probe_recalibration.jsonl` |
-| Enmienda de higiene de test (#10) | deliberadamente NO aplicada antes del tag v1.0 (anclas congeladas en el release) | `entregas/PENDIENTES_POST_RELEASE.md` |
-| CLIs `make rft` / `make lineage` de ATLAS | esqueletos fail-loud (guard con `exit 2` desde v1.0.2): FASE 5-6 se midieron vía harness gaea_v; implementar el ciclo CLI en ATLAS es trabajo futuro | `atlas/scripts/rft_round.py`, `atlas/scripts/lineage_round.py`, `atlas/atlas_ns/learning/rft.py` (spec por docstring) |
-| Aislamiento real del sandbox + piping al evento de auditoría | hoy: `subprocess+rlimits` (POSIX-only), red NO bloqueada a nivel OS (`no_network_requested` = petición, no propiedad verificada); Lote 2: contenedor/WSL2 fail-closed y registro del perfil en la cadena | `atlas/atlas_ns/verify/plugins/programmatic.py`, ANCHOR_CHANGES #11 |
+| Enmienda de higiene de test (#10) | APLICADA en v1.0.2 (fila #13 de ANCHOR_CHANGES) — registro histórico del preregistro | `entregas/PENDIENTES_POST_RELEASE.md` |
+| CLIs `make rft` / `make lineage` de ATLAS | RESUELTO en v1.1.0 (ANCHOR_CHANGES #16): wrappers reales que invocan el harness gaea_v (`run_fase5.py` / `lineage_measured.py`) con prereg obligatorio y fail-loud con causa; la re-ejecución produce artefactos NUEVOS y anexa a la cadena de gaea_v | `atlas/scripts/rft_round.py`, `atlas/scripts/lineage_round.py` |
+| Activación de `isolation: netns` por despliegue | CAPACIDAD implementada en v1.1.0 (ANCHOR_CHANGES #14): `unshare --net` fail-closed con `no_network_enforced` real; el default de repo sigue siendo `none` (rlimits sin bloqueo de red, reportado honesto) porque hosts sin user namespaces fallarían cerrado — activar `netns` en WSL2/Linux con userns | `atlas/atlas_ns/verify/plugins/programmatic.py`, `atlas/config.yaml` (safety.sandbox.isolation) |
 
 ## Entregas y verificación
 
