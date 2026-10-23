@@ -1,0 +1,11 @@
+{
+  "model": "gpt2",
+  "n_scored": 500,
+  "n_excluded": 30,
+  "baseline_accuracy": 0.01276595744680851,
+  "tau_star": 0.6447845697402954,
+  "coverage_at_tau_star": 0.6,
+  "accuracy_at_tau_star": 0.01773049645390071,
+  "gain_vs_always_answer": 0.0049645390070922005,
+  "match_rate": 0.01276595744680851
+}

@@ -1,0 +1,67 @@
+# CASSANDRA configuration. Single source of truth for all experiment
+# parameters; validated key-by-key by tests/test_structure.py.
+
+seed: 42
+
+models:
+  - name: gpt2
+    layers: [2, 5, 8, 11]        # ~25%, 50%, 75%, final of 12 layers
+  - name: pythia-410m
+    layers: [5, 11, 17, 23]      # ~25%, 50%, 75%, final of 24 layers
+
+data:
+  # Official true/false dataset of Azaria & Mitchell 2023 ("The Internal
+  # State of an LLM Knows When It's Lying").
+  #
+  # DATA SOURCE PROVENANCE (updated per the anchor instruction "If any
+  # domain 404s, locate the official repository linked from the paper and
+  # update this URL; the loader fails loudly rather than inventing data"):
+  # the original repository github.com/Azariaa/true-false-dataset is no
+  # longer reachable (404). The same six domain files, with identical
+  # statement/label content, are vendored by ApolloResearch in
+  # deception-detection under data/internal_state/. The URL is pinned to
+  # a full commit SHA (not a live branch) so content cannot change
+  # silently; data/raw/manifest.json records the sha256 of every file and
+  # the loader fails loudly on any mismatch. Cross-checked statement by
+  # statement against the independent HF mirror pminervini/true-false.
+  tf_base_url: "https://raw.githubusercontent.com/ApolloResearch/deception-detection/f8ec4010e74927394709dffa22b97bdf8cd5a62f/data/internal_state/"
+  tf_filename_template: "{domain}_true_false.csv"
+  domains: [animals, cities, companies, elements, facts, inventions]
+  trivias_n: 500
+  cache_dir: "data/processed"
+
+splits:
+  n_folds: 5
+  group_by: entity               # NEVER split by rows: grouped by subject
+  stratify_by: [domain, label]
+
+probes:
+  types: [logistic, mlp]
+  C_grid: [0.01, 0.1, 1, 10]
+  mlp_hidden: 64
+  feature_modes: [last_token, mean_pool]
+  # logprob is a BASELINE for comparison, never a probe feature.
+
+stats:
+  n_bootstrap: 1000
+  ci: 0.95
+  multiple_comparison: holm      # Holm-Bonferroni over the comparison family
+
+generation:
+  max_new_tokens: 32
+  temperature: 0.0               # greedy
+  n_prompts: 500
+
+abstention:
+  min_coverage: 0.6              # tau* maximizes accuracy at coverage >= this
+
+ensemble:
+  enabled: true
+  # Real consistency graph exported from the PROMETHEUS-NS symbolic
+  # store (4442 store triplets -> 13225 bridge rows incl. documented
+  # predicate-surface aliases; see prometheus-ns
+  # scripts/export_consistency_graph.py). null restores the anchor.
+  prometheus_graph: data/external/prometheus_graph.json
+
+colab:
+  auto_setup: true

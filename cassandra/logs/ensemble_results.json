@@ -1,0 +1,40 @@
+{
+  "status": "evaluated",
+  "n_generations": 470,
+  "n_extractable": 146,
+  "extractable_fraction": 0.31063829787234043,
+  "auc_probe": 0.7673611111111112,
+  "auc_signal": 0.5,
+  "auc_ensemble": 0.4479166666666667,
+  "ensemble_minus_probe": {
+    "diff": -0.3194444444444445,
+    "lo": -0.5724137931034483,
+    "hi": -0.07745124593716145,
+    "p_two_sided": 0.0,
+    "n_resamples_skipped": 153
+  },
+  "probe_minus_signal": {
+    "diff": 0.26736111111111116,
+    "lo": -0.00694444444444442,
+    "hi": 0.5,
+    "p_two_sided": 0.064,
+    "n_resamples_skipped": 153
+  },
+  "coverage": {
+    "n_rows_no_label_excluded": 30,
+    "n_rows_extractable": 146,
+    "n_claim_tuples": 146,
+    "n_claim_tuples_supported": 0,
+    "n_claim_tuples_contradicted": 0,
+    "n_claim_tuples_unknown": 146,
+    "n_rows_signal_supported": 0,
+    "n_rows_signal_contradicted": 0,
+    "n_rows_signal_unknown": 146,
+    "graph_supported_rows": 13225,
+    "graph_contradicted_rows": 0,
+    "graph_unique_subjects": 1792,
+    "claim_subjects_in_graph": 8,
+    "claim_subjects_total": 138
+  },
+  "note": "the comparison holds for the extractable is_a subset only, not for all generations"
+}

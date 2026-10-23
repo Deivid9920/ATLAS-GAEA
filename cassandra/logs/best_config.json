@@ -1,0 +1,14 @@
+{
+  "gpt2": {
+    "layer": 5,
+    "mode": "mean_pool",
+    "ptype": "mlp",
+    "auc": 0.7285509232990455
+  },
+  "pythia-410m": {
+    "layer": 11,
+    "mode": "last_token",
+    "ptype": "mlp",
+    "auc": 0.7958583455162165
+  }
+}

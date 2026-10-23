@@ -45,6 +45,32 @@ def test_probe_recalibration_job_logs(tmp_path):
     assert len(lines) >= 1
 
 
+def test_probe_ignores_gitkeep_stub_artifact(tmp_path):
+    # Enmienda #18 (Lote 4 v1.3.0): el stub de contrato .gitkeep de
+    # cassandra/artifacts/probes/ NUNCA cuenta como artefacto entrenado.
+    # Con el hermano integrado, un filtro por p.suffix lo dejaba pasar
+    # (un dotfile tiene Path.suffix == "") y el estado mentia
+    # available=True con un artefacto fantasma.
+    root = tmp_path / "fake_atlas_root"
+    probes = tmp_path / "cassandra" / "artifacts" / "probes"
+    probes.mkdir(parents=True)
+    (probes / ".gitkeep").write_text("", encoding="utf-8")
+
+    probe = ProbeVerifier(repo_root=root)
+    state = probe.status()
+    assert state["available"] is False
+    assert state["reason"] == "no trained probe artifacts"
+    v = probe.verify("any claim", {})
+    assert v.score == 0.5 and "unavailable" in v.evidence
+
+    # Con un bundle real junto al stub, el estado es disponible y el
+    # stub no aparece listado.
+    (probes / "gpt2_best.joblib").write_bytes(b"bundle")
+    state = probe.status()
+    assert state["available"] is True
+    assert state["artifacts"] == ["gpt2_best.joblib"]
+
+
 # -- composite wiring --------------------------------------------------------
 def build_composite(config) -> tuple[CompositeVerifier, dict]:
     cv = CompositeVerifier(

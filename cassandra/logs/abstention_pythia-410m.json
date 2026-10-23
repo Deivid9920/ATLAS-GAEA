@@ -1,0 +1,11 @@
+{
+  "model": "pythia-410m",
+  "n_scored": 500,
+  "n_excluded": 30,
+  "baseline_accuracy": 0.06595744680851064,
+  "tau_star": 0.4648858308792114,
+  "coverage_at_tau_star": 0.6404255319148936,
+  "accuracy_at_tau_star": 0.09302325581395349,
+  "gain_vs_always_answer": 0.02706580900544285,
+  "match_rate": 0.06595744680851064
+}

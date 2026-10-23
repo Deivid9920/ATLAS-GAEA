@@ -45,8 +45,11 @@ class ProbeVerifier:
             return {"available": False,
                     "reason": "CASSANDRA repo not found"}
         probes = self._cassandra / "artifacts" / "probes"
+        # NOTE: a dotfile has Path.suffix == "", so a suffix-based filter
+        # never excluded ".gitkeep"; the contract stub must be excluded
+        # by NAME or it shows up as a phantom trained artifact.
         artifacts = [p.name for p in probes.glob("*")
-                     if p.is_file() and p.suffix != ".gitkeep"] \
+                     if p.is_file() and p.name != ".gitkeep"] \
             if probes.is_dir() else []
         if not artifacts:
             return {"available": False,
